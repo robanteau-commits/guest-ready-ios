@@ -1,0 +1,22 @@
+{
+  "appId": "com.guestreadypro.app",
+  "appName": "Guest Ready Pro",
+  "webDir": "www",
+  "server": {
+    "allowNavigation": ["*"]
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#1F2937",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#1F2937"
+    }
+  }
+}
