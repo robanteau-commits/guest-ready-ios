@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Guest Ready Pro | Cleaner Marketplace & Turnover Management</title>    
+    <meta name="description" content="Guest Ready helps short-term rental hosts find reliable cleaners, post turnover jobs, build a preferred cleaning team, and manage every clean in one place.">
+    <meta name="keywords" content="short-term rental cleaning, Airbnb cleaner marketplace, vacation rental cleaning app, turnover management software, Airbnb cleaning software">
+
+    <meta property="og:title" content="Guest Ready | Find Cleaners for Your Short-Term Rentals">
+    <meta property="og:description" content="Post turnover jobs, connect with cleaners nearby, and build your preferred cleaning team with Guest Ready.">
+    <meta property="og:type" content="website">
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2D8B73">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2D8B73;
+            --primary-dark: #236c5a;
+            --dark: #1F2937;
+            --light: #F3F4F6;
+            --lighter: #F9FAFB;
+            --border: #E5E7EB;
+            --muted: #6B7280;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, system-ui, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--white);
+        }
+
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 0;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--primary);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 10px 18px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            transition: 0.2s ease;
+            display: inline-block;
+        }
+
+        .btn-login {
+            background: #E5E7EB;
+            color: var(--dark);
+        }
+
+        .btn-login:hover {
+            background: #D1D5DB;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            padding: 14px 28px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 800;
+            box-shadow: 0 8px 20px rgba(45, 139, 115, 0.22);
+            transition: 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            cursor: pointer;
+            display: inline-block;
+            padding: 12px 26px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 800;
+            transition: 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #F0FDF8;
+        }
+
+        .hero {
+            padding: 46px 0 70px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 42px;
+            align-items: center;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            background: #E8F7F1;
+            color: var(--primary-dark);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 8px 12px;
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+
+        .hero h1 {
+            font-size: 50px;
+            line-height: 1.08;
+            margin: 0 0 18px 0;
+            color: var(--dark);
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 19px;
+            color: var(--muted);
+            margin: 0 0 28px 0;
+            max-width: 620px;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .hero-points {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .hero-points span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-points i {
+            color: var(--primary);
+        }
+
+        .hero-visual {
+            background: linear-gradient(180deg, #F9FAFB 0%, #F3F4F6 100%);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        }
+
+        .mock-card {
+            background: white;
+            border: 1px solid #EAECEF;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+        }
+
+        .mock-card + .mock-card {
+            margin-top: 14px;
+        }
+
+        .mock-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .mock-title {
+            font-weight: 800;
+            font-size: 16px;
+            color: var(--dark);
+        }
+
+        .mock-badge {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 999px;
+        }
+
+        .badge-posted {
+            color: #92400E;
+            background: #FEF3C7;
+        }
+
+        .badge-requested {
+            color: #1D4ED8;
+            background: #DBEAFE;
+        }
+
+        .badge-team {
+            color: #065F46;
+            background: #D1FAE5;
+        }
+
+        .mock-line {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-top: 1px solid #F3F4F6;
+        }
+
+    .mock-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        overflow: hidden;
+        background: #E5E7EB;
+        border: 1px solid #E5E7EB;
+    }
+    
+    .mock-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+        .mock-text strong {
+            display: block;
+            font-size: 14px;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .mock-text span {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .section {
+            padding: 76px 0;
+        }
+
+        .section-light {
+            background: var(--lighter);
+        }
+
+        .section h2 {
+            font-size: 36px;
+            line-height: 1.15;
+            margin: 0 0 14px 0;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .section-intro {
+            max-width: 760px;
+            margin: 0 auto 44px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 18px;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .step-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+        }
+
+        .step-num {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #E8F7F1;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .step-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+
+        .step-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            text-align: left;
+            border: 1px solid var(--border);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+        }
+
+        .feature-icon {
+            font-size: 28px;
+            color: var(--primary);
+            margin-bottom: 18px;
+            background: #E0F2F1;
+            width: 62px;
+            height: 62px;
+            line-height: 62px;
+            border-radius: 50%;
+            text-align: center;
+        }
+
+        .feature-card h3 {
+            margin: 0 0 10px;
+            font-size: 24px;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .audience-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .audience-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+        }
+
+        .audience-card h3 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 28px;
+        }
+
+        .audience-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .audience-list li {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .audience-list i {
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px;
+            text-align: center;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+        }
+
+        .stat-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+        }
+
+        .stat-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .seo-copy {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .seo-copy h2,
+        .seo-copy h3 {
+            text-align: left;
+        }
+
+        .seo-copy p,
+        .seo-copy li {
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .seo-copy ul {
+            padding-left: 20px;
+        }
+
+        .final-cta {
+            text-align: center;
+            background: linear-gradient(135deg, #1F2937 0%, #2D8B73 100%);
+            color: white;
+            border-radius: 24px;
+            padding: 54px 30px;
+            box-shadow: 0 20px 50px rgba(31, 41, 55, 0.16);
+        }
+
+        .final-cta h2 {
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .final-cta p {
+            max-width: 700px;
+            margin: 0 auto 24px;
+            color: rgba(255,255,255,0.88);
+            font-size: 18px;
+        }
+
+        .final-cta .btn-primary {
+            background: white;
+            color: var(--primary-dark);
+            box-shadow: none;
+        }
+
+        .final-cta .btn-primary:hover {
+            background: #F3F4F6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 34px 20px 44px;
+            color: #9CA3AF;
+            font-size: 14px;
+        }
+
+        @media (max-width: 950px) {
+            .hero-grid,
+            .steps,
+            .feature-grid,
+            .audience-grid,
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding-top: 24px;
+            }
+
+            .hero h1 {
+                font-size: 38px;
+            }
+
+            .section h2 {
+                font-size: 30px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .nav {
+                gap: 14px;
+            }
+
+            .nav-right {
+                gap: 8px;
+            }
+
+            .nav-btn {
+                padding: 9px 14px;
+                font-size: 13px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero p,
+            .section-intro,
+            .final-cta p {
+                font-size: 16px;
+            }
+
+            .feature-card,
+            .step-card,
+            .audience-card,
+            .stat-card {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav class="nav">
+<a href="index.html" class="logo">
+    <i class="fas fa-sync-alt"></i>
+    <span>
+        Guest Ready
+        <span style="font-size:10px; background:#1F2937; color:white; padding:2px 6px; border-radius:4px; margin-left:6px; position:relative; top:-2px;">
+            PRO
+        </span>
+    </span>
+</a>
+
+            <div class="nav-right">
+                <a href="login.html" class="nav-btn btn-login">Log In</a>
+                <a href="dashboard.html?view=register" class="nav-btn btn-primary">Get Started</a>
+            </div>
+        </nav>
+    </div>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div>
+                    <div class="eyebrow">Marketplace for Hosts + Cleaners</div>
+                    <h1>Find Reliable Cleaners for Your Short-Term Rentals</h1>
+                    <p>
+                        Post turnover jobs, connect with available cleaners nearby, and build your preferred cleaning team over time. Guest Ready helps hosts find cleaners fast and manage every clean in one place.
+                    </p>
+
+                    <div class="hero-cta">
+<a href="dashboard.html?view=register" class="btn-primary">Get Started</a>                        <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+                    </div>
+
+                    <div class="hero-points">
+                        <span><i class="fas fa-check-circle"></i> Post turnover jobs in minutes</span>
+                        <span><i class="fas fa-check-circle"></i> Connect with cleaners nearby</span>
+                        <span><i class="fas fa-check-circle"></i> Build your trusted team</span>
+                    </div>
+                </div>
+
+                <div class="hero-visual">
+                    <div class="mock-card">
+                        <div class="mock-top">
+                            <div class="mock-title">Dolomite · Checkout Tomorrow</div>
+                            <div class="mock-badge badge-posted">Posted to Market</div>
+                        </div>
+            <div class="mock-line">
+    <div class="mock-avatar">
+        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Cleaner profile">
+    </div>
+    <div class="mock-text">
+        <strong>Job posted to nearby cleaners</strong>
+        <span>3 cleaners can view this turnover job</span>
+    </div>
+</div>
+                    </div>
+
+                    <div class="mock-card">
+                        <div class="mock-top">
+                            <div class="mock-title">Cleaner Requests</div>
+                            <div class="mock-badge badge-requested">2 Interested</div>
+                        </div>
+<div class="mock-line">
+    <div class="mock-avatar">
+        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Corrine profile">
+    </div>
+    <div class="mock-text">
+        <strong>Corrine requested this clean</strong>
+        <span>“Available tomorrow at 11:30 AM”</span>
+    </div>
+</div>
+<div class="mock-line">
+    <div class="mock-avatar">
+        <img src="https://randomuser.me/api/portraits/women/33.jpg" alt="Maria profile">
+    </div>
+    <div class="mock-text">
+        <strong>Maria requested this clean</strong>
+        <span>“Can also handle same-day laundry”</span>
+    </div>
+</div>
+                    </div>
+
+                    <div class="mock-card">
+                        <div class="mock-top">
+                            <div class="mock-title">Cleaner Assigned</div>
+                            <div class="mock-badge badge-team">Added to Preferred Team</div>
+                        </div>
+<div class="mock-line">
+    <div class="mock-avatar">
+        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Corrine profile">
+    </div>
+    <div class="mock-text">
+        <strong>Corrine is now your go-to cleaner</strong>
+        <span>Use her again for future turnover jobs</span>
+    </div>
+</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="section section-light">
+        <div class="container">
+            <h2>How Guest Ready Works</h2>
+            <p class="section-intro">
+                Guest Ready is built to solve the hardest part of turnover management: finding dependable cleaners when you need them and keeping the best ones close.
+            </p>
+
+            <div class="steps">
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <h3>Post a Turnover Job</h3>
+                    <p>
+                        Share the clean date, property details, checklist, and pay. Open jobs can be posted to the marketplace or directly to your cleaning team.
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <h3>Connect with Available Cleaners</h3>
+                    <p>
+                        Nearby cleaners can view and request your job. You can review interest, chat, and assign the cleaner that fits best.
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <h3>Build Your Preferred Team</h3>
+                    <p>
+                        When you find a great cleaner, keep them in your preferred team for future jobs so every turnover gets easier.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2>The Marketplace Is the Advantage</h2>
+            <p class="section-intro">
+                Guest Ready does more than organize cleans. It helps hosts find cleaners, turn great matches into repeat relationships, and manage every turnover from one dashboard.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-store"></i></div>
+                    <h3>Cleaner Marketplace</h3>
+                    <p>
+                        Post open turnover jobs and connect with available cleaners in your area when your normal cleaner is unavailable or you need backup fast.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-user-check"></i></div>
+                    <h3>Preferred Cleaning Team</h3>
+                    <p>
+                        Turn great marketplace cleaners into your trusted team. Over time, finding coverage becomes faster, easier, and more reliable.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
+                    <h3>Turnover Management</h3>
+                    <p>
+                        Track scheduled cleans, job status, notes, checklists, and communication in one place instead of juggling calls and text threads.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-light">
+        <div class="container">
+            <h2>Built for Both Sides of the Marketplace</h2>
+            <p class="section-intro">
+                Guest Ready helps hosts fill jobs and helps cleaners grow repeat business with short-term rental owners.
+            </p>
+
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <h3>For Hosts</h3>
+                    <ul class="audience-list">
+                        <li><i class="fas fa-check-circle"></i><span>Find cleaners when your usual person is unavailable</span></li>
+                        <li><i class="fas fa-check-circle"></i><span>Post turnover jobs quickly and clearly</span></li>
+                        <li><i class="fas fa-check-circle"></i><span>Build a preferred cleaning team over time</span></li>
+                        <li><i class="fas fa-check-circle"></i><span>Reduce missed cleans and last-minute scrambling</span></li>
+                    </ul>
+                </div>
+
+                <div class="audience-card">
+                    <h3>For Cleaners</h3>
+                    <ul class="audience-list">
+                        <li><i class="fas fa-check-circle"></i><span>Discover open turnover jobs nearby</span></li>
+                        <li><i class="fas fa-check-circle"></i><span>Apply for jobs that fit your schedule</span></li>
+                        <li><i class="fas fa-check-circle"></i><span>Stand out and get added to preferred teams</span></li>
+                        <li><i class="fas fa-check-circle"></i><span>Build repeat work with hosts you like</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2>Why This Matters</h2>
+            <p class="section-intro">
+                Short-term rental turnovers move fast. The real problem is not just scheduling the clean. It is making sure you actually have the right cleaner for the job.
+            </p>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Find Coverage Faster</h3>
+                    <p>Fill open jobs without blasting group texts or scrambling at the last minute.</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Keep Better Cleaners</h3>
+                    <p>Build repeat relationships by promoting strong cleaners into your preferred team.</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Run Cleaner Operations</h3>
+                    <p>Manage job status, scheduling, communication, and checklists from one place.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-light">
+        <div class="container">
+            <div class="seo-copy">
+                <h2>Short-Term Rental Cleaning Marketplace and Turnover Management Software</h2>
+                <p>
+                    Guest Ready helps short-term rental hosts manage the most stressful part of operations: finding reliable cleaners and keeping turnover jobs on track. Whether you manage Airbnb, Vrbo, or Booking.com properties, Guest Ready gives you one place to post jobs, connect with cleaners, assign work, and track job status.
+                </p>
+
+                <h3>Why Hosts Use Guest Ready</h3>
+                <ul>
+                    <li>Find cleaners for Airbnb and vacation rental turnovers</li>
+                    <li>Post open cleaning jobs to a marketplace of nearby cleaners</li>
+                    <li>Build a preferred cleaning team for future assignments</li>
+                    <li>Track every turnover clean from posted to completed</li>
+                    <li>Reduce missed cleans and messy back-and-forth texting</li>
+                </ul>
+
+                <p>
+                    If you run multiple short-term rentals, Guest Ready helps you stay ahead of cleanings, avoid last-minute coverage issues, and create a dependable system for turnover management.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="final-cta">
+                <h2>Stop Scrambling for Cleaners</h2>
+                <p>
+                    Post turnover jobs, connect with cleaners nearby, and build your go-to cleaning team with Guest Ready.
+                </p>
+                <a href="dashboard.html?view=register" class="btn-primary">Get Started</a>
+            </div>
+        </div>
+    </section>
+
+<footer>
+    <p>&copy; 2026 Guest Ready Pro. All rights reserved.</p>
+    <p style="margin-top:8px;">
+    <a href="privacy.html" style="color:#2D8B73; text-decoration:none; margin-right:15px; font-weight:600;">
+        Privacy Policy
+    </a>
+    <a href="terms.html" style="color:#2D8B73; text-decoration:none; font-weight:600;">
+        Terms & Conditions
+    </a>
+</p>
+    <p style="margin-top:8px;">
+        Need help or have feedback?
+        <a href="#" onclick="openSupportFeedbackDialog(event);" style="color:#2D8B73; text-decoration:none; font-weight:600;">Support/Feedback</a>
+    </p>
+</footer>
+
+<script src="sidebar.js"></script>
+<script src="/env-banner.js"></script>
+    <script src="/pwa.js"></script>
+</body>
+</html>

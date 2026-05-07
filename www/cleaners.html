@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2D8B73">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+    <meta charset="UTF-8">
+    <title>Guest Ready - Cleaners</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/app-shell.css">
+    <script src="/sidebar.js"></script>
+    <script src="/mobile-nav.js"></script>
+    <style>
+        :root { --primary-teal: #2D8B73; --secondary-navy: #1F2937; --bg-light: #F9FAFB; --text-main: #374151; --text-muted: #6B7280; --white: #ffffff; --border-color: #E5E7EB; --font-heading: 'Merriweather', serif; --font-body: 'DM Sans', sans-serif; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: var(--font-body); background: var(--bg-light); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4 { font-family: var(--font-heading); color: var(--secondary-navy); font-weight: 700; }
+        button, a { touch-action: manipulation; cursor: pointer; }
+        .app-container { display: flex; width: 100%; height: 100%; }
+        .profile-actions { display: flex; gap: 15px; font-size: 13px; }
+        .action-link { cursor: pointer; color: var(--text-muted); font-weight: 500; }
+        .logout-link { color: #EF4444; }
+        .version-tag { font-size: 10px; color: #ccc; margin-top: 10px; text-align: left;}
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; background: var(--bg-light); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .cleaner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .cleaner-card { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; transition: transform 0.2s; }
+        .cleaner-card:hover { transform: translateY(-3px); }
+        .cleaner-header { display: flex; align-items: center; gap: 15px; }
+        .cleaner-avatar { width: 50px; height: 50px; background: #E5E7EB; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; color: var(--secondary-navy); font-weight: 700; overflow:hidden;}
+        .cleaner-info h3 { margin: 0; font-size: 18px; color: var(--secondary-navy); }
+        .cleaner-info p { margin: 2px 0 0; color: var(--text-muted); font-size: 14px; }
+        .cleaner-bio { font-size: 14px; color: var(--text-main); line-height: 1.5; flex-grow: 1; }
+        .cleaner-actions { border-top: 1px solid #F3F4F6; padding-top: 15px; text-align: center; display: flex; flex-direction: column; gap: 8px;}
+        .invite-btn { width: 100%; padding: 10px; background: var(--secondary-navy); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: var(--font-body); }
+        .invite-btn:hover { opacity: 0.9; }
+        .empty-state { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; background: white; border-radius: 12px; border: 1px dashed var(--border-color); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(31, 41, 55, 0.5); backdrop-filter: blur(2px); justify-content: center; align-items: center; z-index: 3000; }
+        .modal { background: var(--white); width: 90%; max-width: 400px; border-radius: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #eee; font-weight: 700; font-family: var(--font-body); }
+        .modal-body { padding: 20px; overflow-y: auto; }
+        .modal-footer { padding: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #fafafa; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-family: var(--font-body); }
+        .save-btn { background: var(--primary-teal); color: white; padding: 8px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-family: var(--font-body); }
+        .close-btn { background: white; border: 1px solid #ddd; color: #333; padding: 8px 16px; border-radius:6px; cursor:pointer; font-weight:bold; font-family: var(--font-body); }
+        .delete-btn { background: #EF4444; color: white; border: 1px solid #EF4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: var(--font-body); }
+        @media (max-width: 768px) {
+            .main-content { padding-bottom: 80px; } 
+            .page-header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div id="sidebarMount"></div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1>Cleaners</h1>
+            </div>
+            <div id="cleanerGrid" class="cleaner-grid"></div>
+        </div>
+    </div>
+
+    <div id="mobileNavMount"></div>
+
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 style="margin:0; font-family: var(--font-body);">Profile</h3>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+                    <label for="updatePhotoInput" style="width: 80px; height: 80px; border-radius: 50%; background: #F9FAFB; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; cursor: pointer; overflow: hidden; position: relative; transition: all 0.2s;" id="updatePhotoPreviewLabel">
+                        <span style="font-size: 24px; color: var(--text-muted);">📷</span>
+                    </label>
+                    <span style="font-size: 11px; color: var(--text-muted); margin-top: 5px; font-weight: bold;">Update Photo</span>
+                    <input type="file" id="updatePhotoInput" accept="image/*" style="display:none;" onchange="handleUpdatePhoto(this)">
+                </div>
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">First Name</label>
+                <input type="text" id="editFirst" class="auth-input">
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Last Name</label>
+                <input type="text" id="editLast" class="auth-input">
+<label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Email</label>
+<input type="text" id="editEmail" class="auth-input">
+
+<label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Phone Number</label>
+<input type="tel" id="editPhone" class="auth-input" 
+       placeholder="e.g. 704-555-1234"
+       required
+       pattern="^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$"
+       title="Enter a valid US phone number">
+<div id="editCityGroup">
+                    <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Service Area</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="editCity" class="auth-input" placeholder="City" style="flex:2;">
+                        <input type="text" id="editState" class="auth-input" placeholder="State" style="flex:1;">
+                    </div>
+                </div>
+
+                <div id="editCleanerProGroup" style="display:none; margin-top: 15px;">
+                    <h4 style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px;">Professional Details</h4>
+                    
+                    <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Experience Level</label>
+                    <select id="editExperience" class="auth-input" style="margin-bottom: 15px;">
+                        <option value="">-- Select Experience --</option>
+                        <option value="Less than 1 year">Less than 1 year</option>
+                        <option value="1-3 years">1 - 3 years</option>
+                        <option value="3+ years">3+ years</option>
+                    </select>
+                    
+                    <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" id="editSupplies" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;"> 
+                        <label for="editSupplies" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: normal;">I bring my own cleaning supplies</label>
+                    </div>
+                    <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" id="editLaundry" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;"> 
+                        <label for="editLaundry" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: normal;">I can wash laundry off-site</label>
+                    </div>
+                    <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 15px;">
+                        <input type="checkbox" id="editInsured" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;"> 
+                        <label for="editInsured" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: bold;">I am insured / bonded</label>
+                    </div>
+
+                    <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Unavailable Days</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #F9FAFB; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px;">
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Monday" style="margin-bottom:0; width: auto;"> Monday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Tuesday" style="margin-bottom:0; width: auto;"> Tuesday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Wednesday" style="margin-bottom:0; width: auto;"> Wednesday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Thursday" style="margin-bottom:0; width: auto;"> Thursday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Friday" style="margin-bottom:0; width: auto;"> Friday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Saturday" style="margin-bottom:0; width: auto;"> Saturday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Sunday" style="margin-bottom:0; width: auto;"> Sunday</label>
+                    </div>
+                </div>
+
+            </div>
+<div class="modal-footer" style="justify-content: space-between;">
+    <button class="delete-btn" onclick="handleLogout()" style="padding: 8px 16px;">Log Out</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+<button class="close-btn" onclick="openBillingPortal()">Manage Subscription</button>        
+<button class="close-btn" onclick="document.getElementById('profileModal').style.display='none'">Close</button>
+        <button class="save-btn" onclick="saveProfile()">Save</button>
+    </div>
+</div>
+        </div>
+    </div>
+
+<script>
+    renderSidebar({
+        activePage: 'cleaners',
+        versionTag: 'v2026-02-25.Secured'
+    });
+    renderMobileNav({
+        activePage: 'cleaners'
+    });
+
+    // --- NEW: THE VIP WRISTBAND CHECKER ---
+    async function authenticatedFetch(url, options = {}) {
+        const token = localStorage.getItem('guestReadyToken');
+        if (!options.headers) options.headers = {};
+        options.headers['Authorization'] = `Bearer ${token}`;
+        
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+            handleLogout();
+        }
+        return response;
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        const user = JSON.parse(localStorage.getItem('cleaningUser'));
+        const token = localStorage.getItem('guestReadyToken');
+        
+        // Require both user and token to view page
+        if(!user || !token) { window.location.href = 'index.html'; return; }
+        if(user.role === 'Cleaner') { window.location.href = 'dashboard.html'; return; }
+
+        document.getElementById('userWelcome').innerText = user.firstName || 'User';
+        
+        const sidebarAv = document.getElementById('sidebarMyAvatar');
+        if (sidebarAv) {
+            if (user.profilePhoto) { sidebarAv.innerHTML = `<img src="${user.profilePhoto}" style="width:100%; height:100%; object-fit:cover;">`; } 
+            else { sidebarAv.innerText = user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'; }
+        }
+
+        await updateMessageBadge(user);
+        fetchCleaners();
+    });
+
+    async function updateMessageBadge(user) {
+        try {
+            const res = await authenticatedFetch(`/messages?userId=${user.id}`);
+            const msgs = await res.json();
+            const unreadCount = msgs.filter(m => {
+                const sName = m.senderName ? String(m.senderName).toLowerCase() : "";
+                const isSystem = sName === "system" || m.senderId === "system" || m.senderId === null;
+                return !m.read && m.receiverId === user.id && !isSystem;
+            }).length;
+            
+            const badgeD = document.getElementById('msgNavBadge');
+            const badgeM = document.getElementById('mobMsgNavBadge');
+            if (unreadCount > 0) {
+                if(badgeD) { badgeD.style.display = 'inline-block'; badgeD.innerText = unreadCount; }
+                if(badgeM) { badgeM.style.display = 'inline-block'; badgeM.innerText = unreadCount; }
+            } else {
+                if(badgeD) badgeD.style.display = 'none';
+                if(badgeM) badgeM.style.display = 'none';
+            }
+        } catch(e) {}
+    }
+
+async function fetchCleaners() {
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('cleaningUser'));
+            
+            // 1. Fetch the host's jobs to see who they have hired
+            const jobsRes = await authenticatedFetch(`/jobs?userId=${currentUser.id}&role=${currentUser.role}`);
+            const jobs = await jobsRes.json();
+            
+            // 2. Collect the unique IDs of cleaners assigned to these jobs
+            const awardedCleanerIds = new Set();
+            jobs.forEach(job => {
+                if (job.cleaner && job.cleaner.id) {
+                    awardedCleanerIds.add(job.cleaner.id);
+                }
+            });
+
+            // 3. Fetch all users, but ONLY keep the cleaners who have been awarded a job
+            const res = await authenticatedFetch('/users');
+            const allUsers = await res.json();
+            const cleaners = allUsers.filter(u => 
+                (u.role === 'Cleaner' || u.role === 'cleaner') && 
+                awardedCleanerIds.has(u.id)
+            );
+
+            const grid = document.getElementById('cleanerGrid');
+            grid.innerHTML = '';
+            
+            if (cleaners.length === 0) {
+                grid.innerHTML = '<div class="empty-state">No cleaners on your team yet. Once you award a job to a cleaner, they will appear here!</div>';
+                return;
+            }
+
+            cleaners.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'cleaner-card';
+                
+                let avatarHtml = '';
+                if (c.profilePhoto) { avatarHtml = `<img src="${c.profilePhoto}" style="width:100%; height:100%; object-fit:cover;">`; } 
+                else { avatarHtml = (c.firstName.charAt(0) + c.lastName.charAt(0)).toUpperCase(); }
+                
+                // --- NEW TEAM TOGGLE LOGIC ---
+                let teamBtnHtml = '';
+                if (currentUser.role === 'Host') {
+                    const isTeam = currentUser.cleaningTeam && currentUser.cleaningTeam.includes(c.id);
+                    const btnColor = isTeam ? '#EF4444' : '#10B981'; // Red for Remove, Green for Add
+                    const btnText = isTeam ? '❌ Remove from Team' : '⭐ Add to Team';
+                    const action = isTeam ? 'remove' : 'add';
+                    teamBtnHtml = `<button class="invite-btn" style="background:${btnColor};" onclick="toggleTeam('${c.id}', '${action}')">${btnText}</button>`;
+                }
+                
+                const completedCleans = c.stats?.completedCleans || 0;
+const cancelledCleans = c.stats?.cancelledCleans || 0;
+const hostLikes = c.stats?.hostLikes || 0;
+
+card.innerHTML = `
+    <div class="cleaner-header">
+        <div class="cleaner-avatar">${avatarHtml}</div>
+        <div class="cleaner-info">
+            <h3>${c.firstName} ${c.lastName}</h3>
+            <p>📍 ${c.serviceCity || 'Unknown City'}</p>
+        </div>
+    </div>
+
+    <div class="cleaner-bio">${c.description || 'No bio provided.'}</div>
+
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:4px;">
+        <div style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:10px; text-align:center;">
+            <div style="font-size:18px; font-weight:800; color:#1F2937;">${completedCleans}</div>
+            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">Cleans</div>
+        </div>
+        <div style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:10px; text-align:center;">
+            <div style="font-size:18px; font-weight:800; color:#1F2937;">${cancelledCleans}</div>
+            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">Cancelled</div>
+        </div>
+        <div style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:10px; text-align:center;">
+            <div style="font-size:18px; font-weight:800; color:#1F2937;">${hostLikes}</div>
+            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">Likes</div>
+        </div>
+    </div>
+
+    <div class="cleaner-actions">
+        <button class="invite-btn" onclick="inviteCleaner('${c.id}', '${c.firstName}')">💬 Message ${c.firstName}</button>
+        ${teamBtnHtml}
+    </div>
+`;
+
+                card.innerHTML = `
+                    <div class="cleaner-header">
+                        <div class="cleaner-avatar">${avatarHtml}</div>
+                        <div class="cleaner-info">
+                            <h3>${c.firstName} ${c.lastName}</h3>
+                            <p>📍 ${c.serviceCity || 'Unknown City'}</p>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:-4px;">
+                        <span style="background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;">✅ ${completedCleans} cleans</span>
+                        <span style="background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;">🚫 ${cancelledCleans} cancels</span>
+                        <span style="background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;">👍 ${hostLikes} likes</span>
+                    </div>
+
+                    <div class="cleaner-bio">${c.description || 'No bio provided.'}</div>
+                    <div class="cleaner-actions">
+                        <button class="invite-btn" onclick="inviteCleaner('${c.id}', '${c.firstName}')">💬 Message ${c.firstName}</button>
+                        ${teamBtnHtml}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        } catch (e) { console.error(e); }
+    }
+    
+    function inviteCleaner(id, name) { window.location.href = `messages.html?partnerId=${id}&name=${encodeURIComponent(name)}`; }
+
+    // --- TOGGLE CLEANER ON HOST TEAM ---
+    async function toggleTeam(cleanerId, action) {
+        const user = JSON.parse(localStorage.getItem('cleaningUser'));
+        try {
+            const res = await authenticatedFetch('/user/team', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ hostId: user.id, cleanerId, action })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('cleaningUser', JSON.stringify(data.user));
+                fetchCleaners(); // Reload the cards to show new button color
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // --- PHOTO UPLOAD LOGIC (WITH CANVAS AUTO-ROTATE & COMPRESSION) ---
+    let regPhotoBase64 = null; 
+
+    function handleRegPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; 
+                    let height = img.height;
+                    const MAX_SIZE = 400; // Prevents massive phone photos from slowing down the app
+                    
+                    if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } 
+                    else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                    
+                    canvas.width = width; 
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Export the newly rotated and compressed image
+                    regPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    const label = document.getElementById('regPhotoPreviewLabel');
+                    label.innerHTML = `<img src="${regPhotoBase64}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    label.style.border = "none"; 
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+// --- SHARED PROFILE & LOGOUT LOGIC ---
+    let updatedPhotoBase64 = null;
+
+    function handleUpdatePhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; 
+                    let height = img.height;
+                    const MAX_SIZE = 400;
+                    
+                    if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } 
+                    else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                    
+                    canvas.width = width; 
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    updatedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    const label = document.getElementById('updatePhotoPreviewLabel');
+                    if (label) {
+                        label.innerHTML = `<img src="${updatedPhotoBase64}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                        label.style.border = "none";
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function openProfileModal() {
+        const user = JSON.parse(localStorage.getItem('cleaningUser'));
+        if(!user) return;
+        
+if(document.getElementById('editFirst')) document.getElementById('editFirst').value = user.firstName || '';
+if(document.getElementById('editLast')) document.getElementById('editLast').value = user.lastName || '';
+if(document.getElementById('editEmail')) document.getElementById('editEmail').value = user.email || '';
+if(document.getElementById('editPhone')) document.getElementById('editPhone').value = user.phone || '';
+        
+        updatedPhotoBase64 = user.profilePhoto || null;
+        const photoLabel = document.getElementById('updatePhotoPreviewLabel');
+        if (photoLabel) {
+            if (user.profilePhoto) {
+                photoLabel.innerHTML = `<img src="${user.profilePhoto}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                photoLabel.style.border = "none";
+            } else {
+                photoLabel.innerHTML = `<span style="font-size: 24px; color: var(--text-muted);">📷</span>`;
+                photoLabel.style.border = "2px dashed var(--border-color)";
+            }
+        }
+        
+        const cityGroup = document.getElementById('editCityGroup');
+        if (cityGroup) {
+            if (user.role === 'Cleaner') {
+                cityGroup.style.display = 'block';
+                let city = user.serviceCity || ''; let state = '';
+                if (city.includes(',')) { const parts = city.split(','); city = parts[0].trim(); state = parts[1].trim(); }
+                if(document.getElementById('editCity')) document.getElementById('editCity').value = city; 
+                if(document.getElementById('editState')) document.getElementById('editState').value = state;
+            } else { cityGroup.style.display = 'none'; }
+        }
+
+        const proGroup = document.getElementById('editCleanerProGroup');
+        if (proGroup) {
+            if (user.role === 'Cleaner') {
+                proGroup.style.display = 'block';
+                if(document.getElementById('editExperience')) document.getElementById('editExperience').value = user.experience || '';
+                if(document.getElementById('editSupplies')) document.getElementById('editSupplies').checked = !!user.bringsSupplies;
+                if(document.getElementById('editLaundry')) document.getElementById('editLaundry').checked = !!user.laundryOffsite;
+                if(document.getElementById('editInsured')) document.getElementById('editInsured').checked = !!user.insured;
+                
+                document.querySelectorAll('.edit-unavail-day').forEach(cb => {
+                    cb.checked = user.unavailableDays && user.unavailableDays.includes(cb.value);
+                });
+            } else {
+                proGroup.style.display = 'none';
+            }
+        }
+
+        document.getElementById('profileModal').style.display = 'flex';
+    }
+
+    async function saveProfile() {
+        const user = JSON.parse(localStorage.getItem('cleaningUser'));
+        if(!user) return;
+        
+const newFirst = document.getElementById('editFirst') ? document.getElementById('editFirst').value : user.firstName;
+const newLast = document.getElementById('editLast') ? document.getElementById('editLast').value : user.lastName;
+const newEmail = document.getElementById('editEmail') ? document.getElementById('editEmail').value : user.email;
+const newPhone = document.getElementById('editPhone') ? document.getElementById('editPhone').value : user.phone;
+        
+const updates = { 
+    id: user.id, 
+    firstName: newFirst, 
+    lastName: newLast, 
+    email: newEmail,
+    phone: newPhone,
+    profilePhoto: updatedPhotoBase64 
+};
+
+        if (user.role === 'Cleaner') {
+            updates.experience = document.getElementById('editExperience') ? document.getElementById('editExperience').value : user.experience;
+            updates.bringsSupplies = document.getElementById('editSupplies') ? document.getElementById('editSupplies').checked : user.bringsSupplies;
+            updates.laundryOffsite = document.getElementById('editLaundry') ? document.getElementById('editLaundry').checked : user.laundryOffsite;
+            updates.insured = document.getElementById('editInsured') ? document.getElementById('editInsured').checked : user.insured;
+            
+            const unavailDays = [];
+            document.querySelectorAll('.edit-unavail-day:checked').forEach(cb => unavailDays.push(cb.value));
+            updates.unavailableDays = unavailDays;
+        }
+
+        const cityEl = document.getElementById('editCity'); const stateEl = document.getElementById('editState');
+        
+        if (cityEl && stateEl && user.role === 'Cleaner') {
+            const newCityVal = cityEl.value.trim(); const newStateVal = stateEl.value.trim();
+            const fullLocationString = (newCityVal && newStateVal) ? `${newCityVal}, ${newStateVal}` : newCityVal;
+            if (fullLocationString !== user.serviceCity) {
+                updates.serviceCity = fullLocationString;
+                try {
+                    // Note: Nominatim is an external, public API and does not use authenticatedFetch
+                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullLocationString)}`);
+                    const geoData = await geoRes.json();
+                    if (geoData && geoData.length > 0) {
+                        const lat = parseFloat(geoData[0].lat); const lon = parseFloat(geoData[0].lon);
+                        updates.location = { type: "Point", coordinates: [lon, lat] };
+                    }
+                } catch (e) {}
+            }
+        }
+
+        try {
+            const res = await authenticatedFetch('/user/update', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(updates) });
+            const data = await res.json();
+            if (data.success) { 
+                const mergedUser = { ...user, ...data.user }; 
+                if (updatedPhotoBase64) mergedUser.profilePhoto = updatedPhotoBase64;
+                localStorage.setItem('cleaningUser', JSON.stringify(mergedUser)); 
+                alert("Profile Updated!"); location.reload(); 
+            } else { alert("Update failed."); }
+        } catch(e) { alert("Error updating profile."); }
+    }
+
+    window.onclick = function(e) { if(e.target.className === 'modal-overlay') e.target.style.display='none'; }
+    
+async function openBillingPortal() {
+    try {
+        const token = localStorage.getItem('guestReadyToken');
+
+        const res = await fetch('/billing/portal', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.url) {
+            window.location.href = data.url;
+            return;
+        }
+
+        alert(data.message || 'Unable to open billing portal.');
+    } catch (e) {
+        alert('Unable to open billing portal.');
+    }
+}
+
+function handleLogout() { 
+    localStorage.removeItem('cleaningUser'); 
+    localStorage.removeItem('guestReadyToken'); // Clear the wristband on logout
+    window.location.href = 'index.html'; 
+}
+</script>
+<script src="/env-banner.js"></script>
+    <script src="/pwa.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2D8B73">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Guest Ready - Join Your Team</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-teal: #2D8B73; --secondary-navy: #1F2937; --bg-light: #F9FAFB; --text-main: #374151; --text-muted: #6B7280; --white: #ffffff; --border-color: #E5E7EB; --font-heading: 'Merriweather', serif; --font-body: 'DM Sans', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: var(--font-body); background: var(--bg-light); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+        .card { background: var(--white); border-radius: 16px; border: 1px solid var(--border-color); padding: 36px 32px; width: 100%; max-width: 420px; }
+        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary-teal); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+        .logo-text { font-family: var(--font-heading); font-weight: 900; font-size: 18px; color: var(--secondary-navy); line-height: 1; }
+        .logo-sub { font-size: 10px; font-family: var(--font-body); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-family: var(--font-heading); font-size: 22px; color: var(--secondary-navy); margin-bottom: 8px; }
+        .subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.5; }
+        .form-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 13px; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-body); font-size: 15px; color: var(--text-main); }
+        .form-input:focus { outline: none; border-color: var(--primary-teal); }
+        .submit-btn { width: 100%; padding: 14px; background: var(--primary-teal); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: var(--font-body); margin-top: 4px; }
+        .submit-btn:hover { opacity: 0.92; }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error-msg { color: #EF4444; font-size: 13px; margin-bottom: 14px; display: none; }
+        .hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; margin-bottom: 16px; }
+
+        /* States */
+        #loadingState, #errorState, #successState { display: none; text-align: center; }
+        .state-icon { font-size: 48px; margin-bottom: 16px; }
+        .state-title { font-family: var(--font-heading); font-size: 20px; color: var(--secondary-navy); margin-bottom: 8px; }
+        .state-body { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+        .spinner { display: inline-block; width: 36px; height: 36px; border: 3px solid var(--border-color); border-top-color: var(--primary-teal); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-sync-alt"></i></div>
+            <div>
+                <div class="logo-text">Guest Ready</div>
+                <div class="logo-sub">PRO</div>
+            </div>
+        </div>
+
+        <!-- Loading state while we validate the token -->
+        <div id="loadingState" style="display:block; text-align:center; padding: 24px 0;">
+            <div class="spinner"></div>
+            <p style="color: var(--text-muted); font-size: 14px;">Verifying your invite...</p>
+        </div>
+
+        <!-- Invalid / expired token -->
+        <div id="errorState">
+            <div class="state-icon">⚠️</div>
+            <p class="state-title">Link not found</p>
+            <p class="state-body">This invite link is invalid or has already been used. Ask your team manager to send a new invite.</p>
+        </div>
+
+        <!-- Set password form -->
+        <div id="formState" style="display:none;">
+            <h1>Welcome to the team!</h1>
+            <p class="subtitle" id="welcomeSubtitle">Set a password to finish creating your account and start receiving jobs.</p>
+
+            <label class="form-label">Password</label>
+            <input type="password" id="password" class="form-input" placeholder="Choose a password" autocomplete="new-password">
+            <p class="hint">At least 8 characters.</p>
+
+            <label class="form-label">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your password" autocomplete="new-password">
+
+            <p id="formError" class="error-msg"></p>
+
+            <button class="submit-btn" onclick="submitPassword()" id="submitBtn">Create Account</button>
+        </div>
+
+        <!-- Success state -->
+        <div id="successState">
+            <div class="state-icon">✅</div>
+            <p class="state-title">You're all set!</p>
+            <p class="state-body">Your account is ready. Taking you to your dashboard now...</p>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+
+        function showState(id) {
+            ['loadingState', 'errorState', 'formState', 'successState'].forEach(s => {
+                document.getElementById(s).style.display = s === id ? 'block' : 'none';
+            });
+        }
+
+        // Validate token exists before showing the form
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!token) {
+                showState('errorState');
+                return;
+            }
+            // We'll trust the token is real and show the form.
+            // The server will reject it if invalid when they submit.
+            // Pre-validate by doing a lightweight check — if no token param, bail out.
+            showState('formState');
+        });
+
+        async function submitPassword() {
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            const errorEl = document.getElementById('formError');
+            const btn = document.getElementById('submitBtn');
+
+            errorEl.style.display = 'none';
+
+            if (!password || password.length < 8) {
+                errorEl.innerText = 'Password must be at least 8 characters.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (password !== confirm) {
+                errorEl.innerText = 'Passwords do not match.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Creating account...';
+
+            try {
+                const res = await fetch('/company/accept-invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    // Auto-log them in
+                    localStorage.setItem('guestReadyToken', data.token);
+                    localStorage.setItem('cleaningUser', JSON.stringify(data.user));
+                    showState('successState');
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
+                } else {
+                    errorEl.innerText = data.message || 'Something went wrong. Please try again.';
+                    errorEl.style.display = 'block';
+                    if (data.message && data.message.includes('invalid')) {
+                        showState('errorState');
+                    } else {
+                        btn.disabled = false;
+                        btn.innerText = 'Create Account';
+                    }
+                }
+            } catch (e) {
+                errorEl.innerText = 'Network error. Please check your connection and try again.';
+                errorEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = 'Create Account';
+            }
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitPassword();
+        });
+    </script>
+</body>
+</html>

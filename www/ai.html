@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2D8B73">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest Ready AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/app-shell.css">
+  <script src="/sidebar.js"></script>
+  <script src="/mobile-nav.js"></script>
+  <style>
+    :root {
+      --primary-teal: #2D8B73;
+      --secondary-navy: #1F2937;
+      --bg-light: #F9FAFB;
+      --text-main: #374151;
+      --text-muted: #6B7280;
+      --white: #ffffff;
+      --border-color: #E5E7EB;
+      --font-body: 'DM Sans', sans-serif;
+
+      --bg: var(--bg-light);
+      --panel: #ffffff;
+      --text: var(--secondary-navy);
+      --muted: var(--text-muted);
+      --brand: var(--secondary-navy);
+      --accent: #dff1e8;
+      --accent-text: #1f7a5a;
+      --input-border: #d9e2ec;
+      --user-bubble: #e8f0ff;
+      --content-bg: var(--bg-light);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      height: 100dvh;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-container {
+      min-width: 0;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      min-width: 0;
+      min-height: 0;
+      background: var(--content-bg);
+      display: flex;
+      overflow: hidden;
+    }
+
+    .chat-page {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      min-width: 0;
+      flex: 0 0 auto;
+    }
+
+    .messages-scroll {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      overflow-y: auto;
+      margin-bottom: 0;
+      padding-right: 4px;
+    }
+
+    .message {
+      display: block;
+      margin-bottom: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      width: fit-content;
+      max-width: min(760px, 100%);
+      line-height: 1.5;
+      font-size: 15px;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+
+    .message.user {
+      background: var(--user-bubble);
+      margin-left: auto;
+      text-align: left;
+      margin-right: 0;
+    }
+
+    .message.ai {
+      background: var(--white);
+      border: 1px solid var(--border-color);
+      margin-right: auto;
+      margin-left: 0;
+    }
+
+    .typing-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0;
+      min-height: 18px;
+    }
+
+    .chat-composer {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .chat-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      overflow: hidden;
+    }
+
+    .chat-main {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-main.no-messages {
+      justify-content: center;
+    }
+
+    .chat-main.no-messages .messages-scroll {
+      display: none;
+    }
+
+    .chat-main.no-messages #typingNote {
+      display: none !important;
+    }
+
+    .quick-actions-panel {
+      width: 190px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 8px;
+    }
+
+    .quick-actions-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    .suggested-prompts {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .suggested-prompts .prompt-btn {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+      text-align: left;
+      width: 100%;
+    }
+
+    .suggested-prompts .prompt-btn:hover {
+      background: #e2e8f0;
+    }
+
+    @media (max-width: 900px) {
+      .quick-actions-panel { display: none; }
+    }
+
+    .input-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 0;
+      min-width: 0;
+    }
+
+    .input-box input {
+      flex: 1;
+      min-width: 0;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--input-border);
+      font-size: 14px;
+      outline: none;
+      background: #ffffff;
+    }
+
+    .input-box input:focus {
+      border-color: #A7F3D0;
+      box-shadow: 0 0 0 3px rgba(45, 139, 115, 0.15);
+    }
+
+    .input-box button {
+      flex: 0 0 auto;
+      align-self: center;
+      height: 44px;
+      padding: 12px 18px;
+      border: none;
+      background: var(--primary-teal);
+      color: white;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      min-width: 84px;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .input-box button:hover {
+      opacity: 0.95;
+    }
+
+    @media (max-width: 900px) {
+      .chat-page {
+        padding: 16px;
+      }
+
+      .welcome-panel h1 {
+        font-size: 28px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        overflow: auto;
+      }
+
+      .main-content {
+        min-height: calc(100dvh - 64px);
+        height: calc(100dvh - 64px);
+      }
+
+      .chat-page {
+        padding: 12px;
+      }
+
+      .welcome-panel {
+        padding: 24px;
+      }
+
+      .message {
+        max-width: 92%;
+      }
+    }
+
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(31, 41, 55, 0.5); backdrop-filter: blur(2px); justify-content: center; align-items: center; z-index: 3000; }
+  .modal { background: var(--white); width: 90%; max-width: 500px; border-radius: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; }
+  .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { padding: 20px; overflow-y: auto; }
+  .modal-footer { padding: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #fafafa; }
+  .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-family: var(--font-body); }
+  .save-btn { background: var(--primary-teal); color: white; padding: 8px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-family: var(--font-body); }
+  .close-btn { background: white; border: 1px solid #ddd; color: #333; padding: 8px 16px; border-radius:6px; cursor:pointer; font-weight:bold; font-family: var(--font-body); }
+  .delete-btn { background: #EF4444; color: white; border: 1px solid #EF4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: var(--font-body); }
+  .toast { position: fixed; top: 20px; right: 20px; background: var(--primary-teal); color: white; padding: 14px 24px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-weight: bold; font-size: 14px; z-index: 5000; transform: translateX(150%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: var(--font-body); display: flex; align-items: center; gap: 10px; }
+  .toast.show { transform: translateX(0); }
+  .toast.error { background: #EF4444; }
+
+  </style>
+</head>
+<body>
+  <div id="customToast" class="toast"><span>✅</span> <span id="toastMessage">Success!</span></div>
+  <div class="app-container">
+    <div id="sidebarMount"></div>
+    <div class="main-content">
+      <div class="chat-page">
+        <div class="chat-body">
+          <div class="chat-main no-messages">
+            <div id="heroGreeting" style="font-size: 22px; font-weight: 500; color: var(--text); padding: 4px 0 6px 0; flex-shrink: 0;">Hi there</div>
+            <div id="messages" class="messages-scroll"></div>
+            <div id="typingNote" class="typing-note" style="display:none;">Thinking...</div>
+            <div class="chat-composer">
+              <div class="input-box">
+                <input id="input" type="text" placeholder="Ask anything..." />
+                <button onclick="sendAI()">Send</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="quickActionsPanel" class="quick-actions-panel">
+            <!-- Rendered dynamically by renderQuickActions() -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="mobileNavMount"></div>
+  <div id="profileModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="margin:0; font-family: var(--font-body);">Profile</h3>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+          <label for="updatePhotoInput" style="width: 80px; height: 80px; border-radius: 50%; background: #F9FAFB; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; cursor: pointer; overflow: hidden; position: relative; transition: all 0.2s;" id="updatePhotoPreviewLabel">
+            <span style="font-size: 24px; color: var(--text-muted);">📷</span>
+          </label>
+          <span style="font-size: 11px; color: var(--text-muted); margin-top: 5px; font-weight: bold;">Update Photo</span>
+          <input type="file" id="updatePhotoInput" accept="image/*" style="display:none;" onchange="handleUpdatePhoto(this)">
+        </div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">First Name</label>
+        <input type="text" id="editFirst" class="auth-input">
+        <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Last Name</label>
+        <input type="text" id="editLast" class="auth-input">
+        <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Email</label>
+        <input type="text" id="editEmail" class="auth-input">
+        <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Phone Number</label>
+        <input type="text" id="editPhone" class="auth-input" placeholder="e.g. 704-555-1234">
+        <div id="editCityGroup">
+          <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Service Area</label>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="editCity" class="auth-input" placeholder="City" style="flex:2;">
+            <input type="text" id="editState" class="auth-input" placeholder="State" style="flex:1;">
+          </div>
+        </div>
+        <div id="editCleanerProGroup" style="display:none; margin-top: 15px;">
+          <h4 style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px;">Professional Details</h4>
+          <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Experience Level</label>
+          <select id="editExperience" class="auth-input" style="margin-bottom: 15px;">
+            <option value="">-- Select Experience --</option>
+            <option value="Less than 1 year">Less than 1 year</option>
+            <option value="1-3 years">1 - 3 years</option>
+            <option value="3+ years">3+ years</option>
+          </select>
+          <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 10px;">
+            <input type="checkbox" id="editSupplies" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;">
+            <label for="editSupplies" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: normal;">I bring my own cleaning supplies</label>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 10px;">
+            <input type="checkbox" id="editLaundry" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;">
+            <label for="editLaundry" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: normal;">I can wash laundry off-site</label>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 15px;">
+            <input type="checkbox" id="editInsured" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;">
+            <label for="editInsured" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: bold;">I am insured / bonded</label>
+          </div>
+          <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Unavailable Days</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #F9FAFB; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px;">
+            <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Monday" style="margin-bottom:0; width: auto;"> Monday</label>
+            <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Tuesday" style="margin-bottom:0; width: auto;"> Tuesday</label>
+            <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Wednesday" style="margin-bottom:0; width: auto;"> Wednesday</label>
+            <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Thursday" style="margin-bottom:0; width: auto;"> Thursday</label>
+            <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Friday" style="margin-bottom:0; width: auto;"> Friday</label>
+            <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Saturday" style="margin-bottom:0; width: auto;"> Saturday</label>
+            <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Sunday" style="margin-bottom:0; width: auto;"> Sunday</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="delete-btn" onclick="handleLogout()" style="padding: 8px 16px;">Log Out</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="close-btn" onclick="document.getElementById('profileModal').style.display='none'">Close</button>
+          <button class="save-btn" onclick="saveProfile()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  renderSidebar({
+    activePage: 'ai',
+    versionTag: 'v2026-02-25.Secured'
+  });
+  renderMobileNav({
+    activePage: 'ai'
+  });
+
+  let chatHistory = [];
+  let updatedPhotoBase64 = null;
+
+  async function authenticatedFetch(url, options = {}) {
+    const token = localStorage.getItem('guestReadyToken');
+    if (!options.headers) options.headers = {};
+    options.headers.Authorization = `Bearer ${token}`;
+
+    const response = await fetch(url, options);
+    if (response.status === 401) handleLogout();
+    return response;
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('customToast');
+    toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+    toast.innerHTML = type === 'error' ? `<span>⚠️</span> <span>${message}</span>` : `<span>✅</span> <span>${message}</span>`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function getStoredUser() {
+    try {
+      const saved = localStorage.getItem('cleaningUser');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setUserUI() {
+    const user = getStoredUser() || {};
+    const firstName = user.firstName || 'Heather';
+    const firstInitial = firstName.charAt(0).toUpperCase();
+
+    const userWelcome = document.getElementById('userWelcome');
+    const heroGreeting = document.getElementById('heroGreeting');
+    const avatarWrap = document.getElementById('sidebarMyAvatar');
+
+    if (userWelcome) userWelcome.textContent = firstName;
+    if (heroGreeting) heroGreeting.textContent = `Hi, ${firstName}`;
+
+    if (avatarWrap) {
+      if (user.profilePhoto) {
+        avatarWrap.innerHTML = `<img src="${user.profilePhoto}" alt="${firstName}" style="width:100%; height:100%; object-fit:cover;">`;
+      } else {
+        avatarWrap.textContent = firstInitial;
+      }
+    }
+  }
+
+  function applyRoleBasedNavVisibility() {
+    const user = getStoredUser();
+    if (!user || user.role !== 'Cleaner') return;
+
+    const navProps = document.getElementById('navProps');
+    const navCleaners = document.getElementById('navCleaners');
+
+    if (navProps) navProps.style.display = 'none';
+    if (navCleaners) navCleaners.style.display = 'none';
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function addMessage(role, text) {
+    const messages = document.getElementById('messages');
+    const chatMain = document.querySelector('.chat-main');
+    if (chatMain) chatMain.classList.remove('no-messages');
+    const msg = document.createElement('div');
+    msg.className = `message ${role}`;
+    msg.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+    messages.appendChild(msg);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function hideWelcomePanel() {
+    // No welcome panel in this layout
+  }
+
+  function renderQuickActions(briefingData) {
+    const panel = document.getElementById('quickActionsPanel');
+    if (!panel) return;
+
+    const user = getStoredUser() || {};
+    const role = (user.role || 'Host');
+    const hasNoProperties = briefingData && Array.isArray(briefingData.issues) &&
+      briefingData.issues.some(i => i.type === 'host_no_properties');
+
+    let actions = [];
+
+    if (role === 'Cleaner') {
+      actions = [
+        { label: 'My Upcoming Jobs',    prompt: 'What jobs do I have coming up?' },
+        { label: 'Available Jobs',      prompt: 'Show me available jobs in the marketplace.' },
+        { label: 'How to Accept a Job', prompt: 'How do I accept a job?' },
+        { label: 'Update Availability', prompt: 'How do I update my availability?' },
+      ];
+    } else if (hasNoProperties) {
+      actions = [
+        { label: 'Add First Property',   prompt: 'How do I add my first property?' },
+        { label: 'Sync Airbnb Calendar', prompt: 'How do I sync my Airbnb calendar?' },
+        { label: 'Add a Cleaner',        prompt: 'How do I invite a cleaner to my team?' },
+      ];
+    } else {
+      actions = [
+        { label: 'Needs Attention',    prompt: 'What needs my attention?' },
+        { label: 'Unassigned Jobs',    prompt: 'Which jobs are unassigned?' },
+        { label: "Today's Schedule",   prompt: 'What cleans do I have scheduled today?' },
+        { label: 'Same-Day Turnovers', prompt: 'Show same-day turnovers' },
+        { label: 'Assign a Cleaner',   prompt: 'How do I assign or reassign a cleaner to a job?' },
+        { label: 'Move Cleaning Date', prompt: 'How do I move a cleaning date?' },
+      ];
+    }
+
+    const buttonsHtml = actions.map(a =>
+      `<button onclick='sendSuggested(${JSON.stringify(a.prompt)})' class="prompt-btn">${a.label}</button>`
+    ).join('');
+
+    panel.innerHTML = `
+      <div class="quick-actions-label">Quick Help</div>
+      <div class="suggested-prompts">${buttonsHtml}</div>
+    `;
+  }
+
+  function sendSuggested(text) {
+    const input = document.getElementById('input');
+    if (!input) return;
+    input.value = text;
+    sendAI();
+  }
+
+  async function sendAI() {
+    const input = document.getElementById('input');
+    const typingNote = document.getElementById('typingNote');
+
+    const userText = input.value.trim();
+    if (!userText) return;
+
+    input.value = '';
+    hideWelcomePanel();
+
+    addMessage('user', userText);
+    chatHistory.push({ role: 'user', content: userText });
+
+    if (typingNote) {
+      typingNote.style.display = 'block';
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const res = await fetch('/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('guestReadyToken') || ''}`
+        },
+        body: JSON.stringify({
+          message: userText,
+          history: chatHistory
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      const aiMessage = data.message || 'Sorry, I was unable to generate a response.';
+
+      addMessage('ai', aiMessage);
+      chatHistory.push({ role: 'assistant', content: aiMessage });
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        const timeoutMsg = "I'm having trouble getting that information right now. Please try again in a moment.";
+        addMessage('ai', timeoutMsg);
+        chatHistory.push({ role: 'assistant', content: timeoutMsg });
+      } else {
+        console.error('AI request failed:', error);
+        addMessage('ai', 'Sorry, there was a problem reaching the AI service.');
+        chatHistory.push({ role: 'assistant', content: 'Sorry, there was a problem reaching the AI service.' });
+      }
+    } finally {
+      if (typingNote) {
+        typingNote.style.display = 'none';
+      }
+    }
+  }
+  async function loadProactiveBriefing() {
+    const welcomePanel = document.getElementById('welcomePanel');
+    const user = getStoredUser() || {};
+
+    try {
+      const res = await authenticatedFetch('/ai/briefing');
+      if (!res.ok) {
+        renderQuickActions(null);
+        return;
+      }
+      const data = await res.json();
+
+      renderQuickActions(data);
+
+      if (!data || !data.opening) return;
+
+      addMessage('ai', data.opening);
+      chatHistory.push({ role: 'assistant', content: data.opening });
+
+      if (!user.firstName && welcomePanel) {
+        const heroGreeting = document.getElementById('heroGreeting');
+        if (heroGreeting) heroGreeting.textContent = 'Hi there';
+      }
+    } catch (error) {
+      console.error('AI briefing failed:', error);
+      renderQuickActions(null);
+    }
+  }
+
+  function handleUpdatePhoto(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const MAX_WIDTH = 600;
+          const MAX_HEIGHT = 600;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          updatedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+          const label = document.getElementById('updatePhotoPreviewLabel');
+          if (label) {
+            label.innerHTML = `<img src="${updatedPhotoBase64}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            label.style.border = 'none';
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function openProfileModal() {
+    const user = getStoredUser();
+    if (!user) return;
+
+    if (document.getElementById('editFirst')) document.getElementById('editFirst').value = user.firstName || '';
+    if (document.getElementById('editLast')) document.getElementById('editLast').value = user.lastName || '';
+    if (document.getElementById('editEmail')) document.getElementById('editEmail').value = user.email || '';
+    if (document.getElementById('editPhone')) document.getElementById('editPhone').value = user.phone || '';
+
+    updatedPhotoBase64 = user.profilePhoto || null;
+    const photoLabel = document.getElementById('updatePhotoPreviewLabel');
+    if (photoLabel) {
+      if (user.profilePhoto) {
+        photoLabel.innerHTML = `<img src="${user.profilePhoto}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        photoLabel.style.border = 'none';
+      } else {
+        photoLabel.innerHTML = `<span style="font-size: 24px; color: var(--text-muted);">📷</span>`;
+        photoLabel.style.border = '2px dashed var(--border-color)';
+      }
+    }
+
+    const cityGroup = document.getElementById('editCityGroup');
+    const proGroup = document.getElementById('editCleanerProGroup');
+    if (user.role === 'Cleaner') {
+      if (cityGroup) cityGroup.style.display = 'block';
+      if (proGroup) proGroup.style.display = 'block';
+      let city = user.serviceCity || '';
+      let state = '';
+      if (city.includes(',')) {
+        const parts = city.split(',');
+        city = parts[0].trim();
+        state = parts[1].trim();
+      }
+      if (document.getElementById('editCity')) document.getElementById('editCity').value = city;
+      if (document.getElementById('editState')) document.getElementById('editState').value = state;
+      if (document.getElementById('editExperience')) document.getElementById('editExperience').value = user.experience || '';
+      if (document.getElementById('editSupplies')) document.getElementById('editSupplies').checked = !!user.bringsSupplies;
+      if (document.getElementById('editLaundry')) document.getElementById('editLaundry').checked = !!user.laundryOffsite;
+      if (document.getElementById('editInsured')) document.getElementById('editInsured').checked = !!user.insured;
+      document.querySelectorAll('.edit-unavail-day').forEach(cb => {
+        cb.checked = user.unavailableDays && user.unavailableDays.includes(cb.value);
+      });
+    } else {
+      if (cityGroup) cityGroup.style.display = 'none';
+      if (proGroup) proGroup.style.display = 'none';
+    }
+
+    document.getElementById('profileModal').style.display = 'flex';
+  }
+
+  async function saveProfile() {
+    const user = getStoredUser();
+    if (!user) return;
+
+    const updates = {
+      id: user.id,
+      firstName: document.getElementById('editFirst')?.value || user.firstName,
+      lastName: document.getElementById('editLast')?.value || user.lastName,
+      email: document.getElementById('editEmail')?.value || user.email,
+      phone: document.getElementById('editPhone')?.value || user.phone,
+      profilePhoto: updatedPhotoBase64
+    };
+
+    if (user.role === 'Cleaner') {
+      updates.experience = document.getElementById('editExperience')?.value || user.experience;
+      updates.bringsSupplies = !!document.getElementById('editSupplies')?.checked;
+      updates.laundryOffsite = !!document.getElementById('editLaundry')?.checked;
+      updates.insured = !!document.getElementById('editInsured')?.checked;
+      const unavailDays = [];
+      document.querySelectorAll('.edit-unavail-day:checked').forEach(cb => unavailDays.push(cb.value));
+      updates.unavailableDays = unavailDays;
+
+      const newCityVal = document.getElementById('editCity')?.value.trim() || '';
+      const newStateVal = document.getElementById('editState')?.value.trim() || '';
+      updates.serviceCity = (newCityVal && newStateVal) ? `${newCityVal}, ${newStateVal}` : newCityVal;
+    }
+
+    try {
+      const res = await authenticatedFetch('/user/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      const data = await res.json();
+      if (data.success) {
+        const mergedUser = { ...user, ...data.user };
+        if (updatedPhotoBase64) mergedUser.profilePhoto = updatedPhotoBase64;
+        localStorage.setItem('cleaningUser', JSON.stringify(mergedUser));
+        document.getElementById('profileModal').style.display = 'none';
+        setUserUI();
+        showToast('Profile Updated!');
+      } else {
+        showToast(data.message || 'Update failed.', 'error');
+      }
+    } catch (e) {
+      showToast('Error updating profile.', 'error');
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('cleaningUser');
+    localStorage.removeItem('guestReadyToken');
+    window.location.href = 'index.html';
+  }
+
+  document.getElementById('input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      sendAI();
+    }
+  });
+
+window.addEventListener('DOMContentLoaded', () => {
+  const user = localStorage.getItem('cleaningUser');
+  const token = localStorage.getItem('guestReadyToken');
+
+  if (!user || !token) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  setUserUI();
+  applyRoleBasedNavVisibility();
+  loadProactiveBriefing();
+});
+
+window.onclick = function(e) {
+  if (e.target.className === 'modal-overlay') e.target.style.display = 'none';
+};
+</script>
+<script src="/env-banner.js"></script>
+  <script src="/pwa.js"></script>
+</body>
+</html>

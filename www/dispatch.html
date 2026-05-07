@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2D8B73">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Guest Ready - Dispatch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/app-shell.css">
+    <script src="/sidebar.js"></script>
+    <script src="/mobile-nav.js"></script>
+    <style>
+        :root { --primary-teal: #2D8B73; --secondary-navy: #1F2937; --bg-light: #F9FAFB; --text-main: #374151; --text-muted: #6B7280; --white: #ffffff; --border-color: #E5E7EB; --font-heading: 'Merriweather', serif; --font-body: 'DM Sans', sans-serif; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: var(--font-body); background: var(--bg-light); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4 { font-family: var(--font-heading); color: var(--secondary-navy); font-weight: 700; }
+        button, a { touch-action: manipulation; cursor: pointer; }
+        .app-container { display: flex; width: 100%; height: 100%; }
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; background: var(--bg-light); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .page-header h1 { margin: 0; font-size: 24px; }
+        .page-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+        .section-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 12px; }
+
+        /* Invite button */
+        .invite-btn-primary { background: var(--secondary-navy); color: white; border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font-body); display: flex; align-items: center; gap: 8px; }
+        .invite-btn-primary:hover { opacity: 0.9; }
+
+        /* Jobs section */
+        .jobs-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+        .job-card { background: var(--white); border-radius: 10px; border: 1px solid var(--border-color); padding: 16px 18px; display: flex; align-items: center; gap: 16px; }
+        .job-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .dot-unassigned { background: #EF9F27; }
+        .dot-assigned { background: #2D8B73; }
+        .dot-completed { background: #639922; }
+        .job-main { flex: 1; min-width: 0; }
+        .job-property { font-size: 15px; font-weight: 700; color: var(--secondary-navy); margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .job-meta { font-size: 12px; color: var(--text-muted); margin: 0; }
+        .job-pay { font-size: 13px; font-weight: 700; color: var(--primary-teal); white-space: nowrap; }
+        .assign-select { font-size: 13px; border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 10px; background: var(--bg-light); color: var(--text-main); font-family: var(--font-body); cursor: pointer; min-width: 160px; }
+        .assign-select:focus { outline: none; border-color: var(--primary-teal); }
+        .assign-select:disabled { opacity: 0.5; cursor: not-allowed; }
+        .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+        .badge-completed { background: #ECFDF5; color: #065F46; }
+        .empty-jobs { text-align: center; color: var(--text-muted); padding: 32px; background: white; border-radius: 10px; border: 1px dashed var(--border-color); font-size: 14px; }
+
+        /* Team section */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 32px; }
+        .team-card { background: var(--white); border-radius: 10px; border: 1px solid var(--border-color); padding: 16px; display: flex; align-items: center; gap: 12px; }
+        .team-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; overflow: hidden; }
+        .av-teal { background: #E1F5EE; color: #0F6E56; }
+        .av-blue { background: #E6F1FB; color: #185FA5; }
+        .av-amber { background: #FAEEDA; color: #854F0B; }
+        .av-purple { background: #EEEDFE; color: #3C3489; }
+        .team-info { flex: 1; min-width: 0; }
+        .team-name { font-size: 14px; font-weight: 700; color: var(--secondary-navy); margin: 0 0 2px; }
+        .team-status { font-size: 12px; color: var(--text-muted); margin: 0; }
+        .team-invite-card { border: 1px dashed var(--border-color); cursor: pointer; background: var(--bg-light); }
+        .team-invite-card:hover { border-color: var(--primary-teal); background: #F0FAF7; }
+        .team-invite-icon { width: 42px; height: 42px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--text-muted); flex-shrink: 0; }
+        .pending-badge { font-size: 10px; background: #FEF3C7; color: #92400E; border-radius: 4px; padding: 2px 6px; font-weight: 700; }
+
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(31,41,55,0.5); backdrop-filter: blur(2px); justify-content: center; align-items: center; z-index: 3000; }
+        .modal { background: var(--white); width: 90%; max-width: 420px; border-radius: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #eee; }
+        .modal-header h3 { margin: 0; font-size: 18px; font-family: var(--font-body); font-weight: 700; }
+        .modal-body { padding: 20px; overflow-y: auto; }
+        .modal-footer { padding: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #fafafa; }
+        .form-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-family: var(--font-body); font-size: 14px; }
+        .form-input:focus { outline: none; border-color: var(--primary-teal); }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-input { flex: 1; }
+        .btn-primary { background: var(--primary-teal); color: white; padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: var(--font-body); font-size: 14px; }
+        .btn-secondary { background: white; border: 1px solid #ddd; color: #333; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: var(--font-body); font-size: 14px; }
+        .btn-danger { background: #EF4444; color: white; border: 1px solid #EF4444; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: var(--font-body); }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1F2937; color: white; padding: 12px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .toast.show { opacity: 1; }
+
+        /* Profile modal fields (same as other pages) */
+        .action-link { cursor: pointer; color: var(--text-muted); font-weight: 500; }
+        .logout-link { color: #EF4444; }
+        .version-tag { font-size: 10px; color: #ccc; margin-top: 10px; text-align: left; }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 20px 16px 90px; }
+            .page-header h1 { font-size: 20px; }
+            .job-card { flex-wrap: wrap; gap: 10px; }
+            .assign-select { min-width: 100%; }
+            .job-pay { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebarMount"></div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1>Dispatch</h1>
+                <button class="invite-btn-primary" onclick="openInviteModal()">
+                    <i class="fa-solid fa-user-plus"></i> Invite Cleaner
+                </button>
+            </div>
+            <p class="page-subtitle" id="pageSubtitle">Assign your accepted jobs to team members.</p>
+
+            <p class="section-title">Jobs to assign</p>
+            <div id="jobsList" class="jobs-list">
+                <div class="empty-jobs">Loading jobs...</div>
+            </div>
+
+            <p class="section-title">Your team</p>
+            <div id="teamGrid" class="team-grid">
+                <div style="color: var(--text-muted); font-size: 14px;">Loading team...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mobileNavMount"></div>
+
+    <!-- Invite Modal -->
+    <div id="inviteModal" class="modal-overlay" onclick="if(event.target===this)closeInviteModal()">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Invite a team member</h3>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 20px;">They'll get a text with a link to set up their account. Their login is free — covered under your plan.</p>
+                <div class="form-row">
+                    <div style="flex:1;">
+                        <label class="form-label">First Name</label>
+                        <input type="text" id="inviteFirst" class="form-input" placeholder="Maria">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" id="inviteLast" class="form-input" placeholder="Garcia">
+                    </div>
+                </div>
+                <label class="form-label">Phone Number</label>
+                <input type="tel" id="invitePhone" class="form-input" placeholder="704-555-1234">
+                <p id="inviteError" style="color:#EF4444; font-size:13px; margin:-8px 0 12px; display:none;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeInviteModal()">Cancel</button>
+                <button class="btn-primary" onclick="sendInvite()">Send Invite</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal (matches other pages) -->
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h3 style="margin:0; font-family: var(--font-body);">Profile</h3></div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+                    <label for="updatePhotoInput" style="width: 80px; height: 80px; border-radius: 50%; background: #F9FAFB; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; cursor: pointer; overflow: hidden; position: relative; transition: all 0.2s;" id="updatePhotoPreviewLabel">
+                        <span style="font-size: 24px; color: var(--text-muted);">📷</span>
+                    </label>
+                    <span style="font-size: 11px; color: var(--text-muted); margin-top: 5px; font-weight: bold;">Update Photo</span>
+                    <input type="file" id="updatePhotoInput" accept="image/*" style="display:none;" onchange="handleUpdatePhoto(this)">
+                </div>
+                <label class="form-label">First Name</label>
+                <input type="text" id="editFirst" class="form-input">
+                <label class="form-label">Last Name</label>
+                <input type="text" id="editLast" class="form-input">
+                <label class="form-label">Email</label>
+                <input type="text" id="editEmail" class="form-input">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" id="editPhone" class="form-input" placeholder="e.g. 704-555-1234">
+                <div id="editCityGroup">
+                    <label class="form-label">Service Area</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="editCity" class="form-input" placeholder="City" style="flex:2; margin-bottom:16px;">
+                        <input type="text" id="editState" class="form-input" placeholder="State" style="flex:1; margin-bottom:16px;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn-danger" onclick="handleLogout()">Log Out</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-secondary" onclick="openBillingPortal()">Manage Subscription</button>
+                    <button class="btn-secondary" onclick="document.getElementById('profileModal').style.display='none'">Close</button>
+                    <button class="btn-primary" onclick="saveProfile()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+    renderSidebar({ activePage: 'dispatch', versionTag: 'v2026-05-04.Dispatch' });
+    renderMobileNav({ activePage: 'dispatch' });
+
+    // ---- AUTH HELPER ----
+    async function authenticatedFetch(url, options = {}) {
+        const token = localStorage.getItem('guestReadyToken');
+        if (!options.headers) options.headers = {};
+        options.headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetch(url, options);
+        if (response.status === 401) handleLogout();
+        return response;
+    }
+
+    // ---- INIT ----
+    window.addEventListener('DOMContentLoaded', async () => {
+        const user = JSON.parse(localStorage.getItem('cleaningUser'));
+        const token = localStorage.getItem('guestReadyToken');
+
+        if (!user || !token) { window.location.href = 'index.html'; return; }
+        if (user.role !== 'Cleaner' || user.accountType !== 'company') {
+            window.location.href = 'dashboard.html'; return;
+        }
+
+        document.getElementById('userWelcome').innerText = user.firstName || 'User';
+        const sidebarAv = document.getElementById('sidebarMyAvatar');
+        if (sidebarAv) {
+            if (user.profilePhoto) { sidebarAv.innerHTML = `<img src="${user.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">`; }
+            else { sidebarAv.innerText = user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'; }
+        }
+
+        await updateMessageBadge(user);
+        await loadDispatch();
+    });
+
+    async function updateMessageBadge(user) {
+        try {
+            const res = await authenticatedFetch(`/messages?userId=${user.id}`);
+            const msgs = await res.json();
+            const unreadCount = msgs.filter(m => {
+                const sName = m.senderName ? String(m.senderName).toLowerCase() : '';
+                const isSystem = sName === 'system' || m.senderId === 'system' || m.senderId === null;
+                return !m.read && m.receiverId === user.id && !isSystem;
+            }).length;
+            const badgeD = document.getElementById('msgNavBadge');
+            const badgeM = document.getElementById('mobMsgNavBadge');
+            if (unreadCount > 0) {
+                if (badgeD) { badgeD.style.display = 'inline-block'; badgeD.innerText = unreadCount; }
+                if (badgeM) { badgeM.style.display = 'inline-block'; badgeM.innerText = unreadCount; }
+            } else {
+                if (badgeD) badgeD.style.display = 'none';
+                if (badgeM) badgeM.style.display = 'none';
+            }
+        } catch (e) {}
+    }
+
+    // ---- DISPATCH DATA ----
+    let teamMembers = [];
+
+    async function loadDispatch() {
+        try {
+            const res = await authenticatedFetch('/company/dispatch');
+            const data = await res.json();
+            if (!data.success) { showToast('Failed to load dispatch data'); return; }
+
+            teamMembers = data.members || [];
+            renderJobs(data.jobs || [], teamMembers);
+            renderTeam(teamMembers);
+
+            // Update subtitle with today's date
+            const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            document.getElementById('pageSubtitle').innerText = todayStr;
+        } catch (e) {
+            console.error('loadDispatch error:', e);
+            document.getElementById('jobsList').innerHTML = '<div class="empty-jobs">Could not load jobs. Please refresh.</div>';
+        }
+    }
+
+    // ---- RENDER JOBS ----
+    function renderJobs(jobs, members) {
+        const container = document.getElementById('jobsList');
+        if (!jobs.length) {
+            container.innerHTML = '<div class="empty-jobs">No active jobs yet. Once a host assigns your company to a job, it will appear here for dispatch.</div>';
+            return;
+        }
+
+        // Sort: unassigned first, then assigned, then completed
+        jobs.sort((a, b) => {
+            const order = { unassigned: 0, offered: 0, assigned: 1, reschedule_pending: 1, in_progress: 2, completed: 3 };
+            return (order[a.status] ?? 1) - (order[b.status] ?? 1);
+        });
+
+        container.innerHTML = '';
+        jobs.forEach(job => {
+            const card = document.createElement('div');
+            card.className = 'job-card';
+
+            const isCompleted = job.status === 'completed';
+            const isAssigned = !!job.assignedTeamMemberId;
+            const dotClass = isCompleted ? 'dot-completed' : isAssigned ? 'dot-assigned' : 'dot-unassigned';
+
+            const propName = job.property ? job.property.name : 'Unknown Property';
+            const propAddress = job.property ? job.property.address : '';
+            const pay = job.property && job.property.pay ? `$${job.property.pay}` : '';
+            const dateStr = job.scheduledDate || job.date || '';
+            const bedrooms = job.property && job.property.bedrooms ? `${job.property.bedrooms}BR · ` : '';
+
+            const memberOptions = members.map(m =>
+                `<option value="${m.id}" ${job.assignedTeamMemberId === m.id ? 'selected' : ''}>${m.firstName} ${m.lastName}</option>`
+            ).join('');
+
+            const dropdownHtml = isCompleted
+                ? `<span class="badge badge-completed">Completed</span>`
+                : `<select class="assign-select" onchange="handleDispatch(this, '${job.id}')" ${!members.length ? 'disabled' : ''}>
+                       <option value="">— Assign to —</option>
+                       ${memberOptions}
+                   </select>`;
+
+            card.innerHTML = `
+                <div class="job-status-dot ${dotClass}"></div>
+                <div class="job-main">
+                    <p class="job-property">${propName}</p>
+                    <p class="job-meta">${bedrooms}${dateStr}${propAddress ? ' · ' + propAddress : ''}</p>
+                </div>
+                ${pay ? `<span class="job-pay">${pay}</span>` : ''}
+                ${dropdownHtml}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // ---- RENDER TEAM ----
+    const avatarColors = ['av-teal', 'av-blue', 'av-amber', 'av-purple'];
+
+    function renderTeam(members) {
+        const grid = document.getElementById('teamGrid');
+        grid.innerHTML = '';
+
+        members.forEach((m, i) => {
+            const card = document.createElement('div');
+            card.className = 'team-card';
+            const initials = `${(m.firstName || '?').charAt(0)}${(m.lastName || '').charAt(0)}`.toUpperCase();
+            const colorClass = avatarColors[i % avatarColors.length];
+            const isPending = !m.password && m.pendingInviteToken !== undefined;
+            const statusText = isPending
+                ? '<span class="pending-badge">Invite pending</span>'
+                : (m.phone || 'Active');
+
+            card.innerHTML = `
+                <div class="team-avatar ${colorClass}">${initials}</div>
+                <div class="team-info">
+                    <p class="team-name">${m.firstName || ''} ${m.lastName || ''}</p>
+                    <p class="team-status">${statusText}</p>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Always add the invite card at the end
+        const inviteCard = document.createElement('div');
+        inviteCard.className = 'team-card team-invite-card';
+        inviteCard.onclick = openInviteModal;
+        inviteCard.innerHTML = `
+            <div class="team-invite-icon"><i class="fa-solid fa-plus"></i></div>
+            <div class="team-info">
+                <p class="team-name" style="color: var(--text-muted);">Invite cleaner</p>
+                <p class="team-status">via SMS</p>
+            </div>
+        `;
+        grid.appendChild(inviteCard);
+    }
+
+    // ---- DISPATCH A JOB ----
+    async function handleDispatch(selectEl, assignmentId) {
+        const teamMemberId = selectEl.value;
+        selectEl.disabled = true;
+
+        try {
+            const res = await authenticatedFetch('/company/dispatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assignmentId, teamMemberId: teamMemberId || null })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const memberName = teamMembers.find(m => m.id === teamMemberId);
+                if (memberName) {
+                    showToast(`Assigned to ${memberName.firstName} — SMS sent`);
+                } else {
+                    showToast('Assignment cleared');
+                }
+                // Update the dot color on the card
+                const dot = selectEl.closest('.job-card').querySelector('.job-status-dot');
+                if (dot) {
+                    dot.className = `job-status-dot ${teamMemberId ? 'dot-assigned' : 'dot-unassigned'}`;
+                }
+            } else {
+                showToast(data.message || 'Could not assign job');
+                await loadDispatch(); // Reset to server state
+            }
+        } catch (e) {
+            showToast('Network error — please try again');
+            await loadDispatch();
+        } finally {
+            selectEl.disabled = false;
+        }
+    }
+
+    // ---- INVITE MODAL ----
+    function openInviteModal() {
+        document.getElementById('inviteFirst').value = '';
+        document.getElementById('inviteLast').value = '';
+        document.getElementById('invitePhone').value = '';
+        document.getElementById('inviteError').style.display = 'none';
+        document.getElementById('inviteModal').style.display = 'flex';
+        setTimeout(() => document.getElementById('inviteFirst').focus(), 100);
+    }
+
+    function closeInviteModal() {
+        document.getElementById('inviteModal').style.display = 'none';
+    }
+
+    async function sendInvite() {
+        const firstName = document.getElementById('inviteFirst').value.trim();
+        const lastName = document.getElementById('inviteLast').value.trim();
+        const phone = document.getElementById('invitePhone').value.trim();
+        const errorEl = document.getElementById('inviteError');
+
+        if (!firstName) { errorEl.innerText = 'First name is required.'; errorEl.style.display = 'block'; return; }
+        if (!phone) { errorEl.innerText = 'Phone number is required to send the invite.'; errorEl.style.display = 'block'; return; }
+
+        errorEl.style.display = 'none';
+
+        try {
+            const res = await authenticatedFetch('/company/invite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ firstName, lastName, phone })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeInviteModal();
+                showToast(`Invite sent to ${firstName} via SMS`);
+                await loadDispatch(); // Refresh to show new team member
+            } else {
+                errorEl.innerText = data.message || 'Could not send invite.';
+                errorEl.style.display = 'block';
+            }
+        } catch (e) {
+            errorEl.innerText = 'Network error — please try again.';
+            errorEl.style.display = 'block';
+        }
+    }
+
+    // ---- TOAST ----
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ---- PROFILE & LOGOUT (matches other pages) ----
+    let updatedPhotoBase64 = null;
+
+    function handleUpdatePhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    const MAX_SIZE = 400;
+                    if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                    else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                    canvas.width = width; canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                    updatedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    const label = document.getElementById('updatePhotoPreviewLabel');
+                    if (label) { label.innerHTML = `<img src="${updatedPhotoBase64}" style="width:100%;height:100%;object-fit:cover;">`; label.style.border = 'none'; }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function openProfileModal() {
+        const user = JSON.parse(localStorage.getItem('cleaningUser'));
+        if (!user) return;
+        if (document.getElementById('editFirst')) document.getElementById('editFirst').value = user.firstName || '';
+        if (document.getElementById('editLast')) document.getElementById('editLast').value = user.lastName || '';
+        if (document.getElementById('editEmail')) document.getElementById('editEmail').value = user.email || '';
+        if (document.getElementById('editPhone')) document.getElementById('editPhone').value = user.phone || '';
+        updatedPhotoBase64 = user.profilePhoto || null;
+        const photoLabel = document.getElementById('updatePhotoPreviewLabel');
+        if (photoLabel) {
+            if (user.profilePhoto) { photoLabel.innerHTML = `<img src="${user.profilePhoto}" style="width:100%;height:100%;object-fit:cover;">`; photoLabel.style.border = 'none'; }
+            else { photoLabel.innerHTML = `<span style="font-size:24px;color:var(--text-muted);">📷</span>`; photoLabel.style.border = '2px dashed var(--border-color)'; }
+        }
+        const cityGroup = document.getElementById('editCityGroup');
+        if (cityGroup && user.role === 'Cleaner') {
+            cityGroup.style.display = 'block';
+            let city = user.serviceCity || '', state = '';
+            if (city.includes(',')) { const parts = city.split(','); city = parts[0].trim(); state = parts[1].trim(); }
+            if (document.getElementById('editCity')) document.getElementById('editCity').value = city;
+            if (document.getElementById('editState')) document.getElementById('editState').value = state;
+        } else if (cityGroup) { cityGroup.style.display = 'none'; }
+        document.getElementById('profileModal').style.display = 'flex';
+    }
+
+    async function saveProfile() {
+        const user = JSON.parse(localStorage.getItem('cleaningUser'));
+        if (!user) return;
+        const newFirst = document.getElementById('editFirst')?.value || user.firstName;
+        const newLast = document.getElementById('editLast')?.value || user.lastName;
+        const newEmail = document.getElementById('editEmail')?.value || user.email;
+        const newPhone = document.getElementById('editPhone')?.value || user.phone;
+        const cityVal = document.getElementById('editCity')?.value || '';
+        const stateVal = document.getElementById('editState')?.value || '';
+        const newServiceCity = cityVal && stateVal ? `${cityVal}, ${stateVal}` : cityVal || user.serviceCity;
+        try {
+            const res = await authenticatedFetch('/user/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id, firstName: newFirst, lastName: newLast, email: newEmail, phone: newPhone, serviceCity: newServiceCity, profilePhoto: updatedPhotoBase64 || user.profilePhoto })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('cleaningUser', JSON.stringify(data.user));
+                document.getElementById('profileModal').style.display = 'none';
+                document.getElementById('userWelcome').innerText = data.user.firstName || 'User';
+                showToast('Profile saved');
+            } else { showToast(data.message || 'Could not save profile'); }
+        } catch (e) { showToast('Network error'); }
+    }
+
+    async function openBillingPortal() {
+        try {
+            const res = await authenticatedFetch('/billing/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+            const data = await res.json();
+            if (data.url) { window.location.href = data.url; }
+        } catch (e) { showToast('Could not open billing portal'); }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('cleaningUser');
+        localStorage.removeItem('guestReadyToken');
+        window.location.href = 'index.html';
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Guest Ready - Login</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2D8B73">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #2D8B73; --bg: #F3F4F6; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 20px; }
+        .login-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h1 { color: var(--primary); margin-bottom: 10px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
+        button { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .error { color: red; font-size: 14px; display: none; margin-top: 10px; }
+
+        /* PASSWORD TOGGLE STYLES */
+        .password-wrapper { position: relative; width: 100%; margin-bottom: 15px; }
+        .password-wrapper input { margin-bottom: 0; }
+.password-toggle { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 16px; color: #9CA3AF; user-select: none; opacity: 1; transition: color 0.2s; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.password-toggle:hover { color: #6B7280; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>Guest Ready</h1>
+        <p style="color:#666; margin-bottom:30px;">Cleaners and Hosts, in Sync.</p>
+        <form id="loginForm" onsubmit="event.preventDefault(); login();" autocomplete="on">
+        <input type="email" id="email" name="email" autocomplete="username" placeholder="Email Address">
+
+        <div class="password-wrapper">
+            <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Password" style="padding-right: 45px;">
+<span class="password-toggle" onclick="togglePassword('password', this)">
+    <i class="fa-solid fa-eye-slash"></i>
+</span>        </div>
+
+        <button type="submit" id="loginBtn">Log In</button>
+        </form>
+        <div id="errorMsg" class="error">Invalid credentials</div>
+        <p style="margin-top:20px; font-size:12px;"><a href="index.html" style="color:#999; text-decoration:none;">← Back to Home</a></p>
+    </div>
+    <script>
+        function showRegisterView() {
+            const loginCard = document.querySelector('.login-card');
+            loginCard.innerHTML = `
+                <h1>Guest Ready</h1>
+                <p style="color:#666; margin-bottom:20px;">Create your account</p>
+                <p style="font-size:13px; color:#B45309; background:#FFFBEB; border:1px solid #FDE68A; padding:10px 12px; border-radius:8px; margin-bottom:18px;">
+                    Registration now happens inside the main app flow so subscription checkout can run correctly.
+                </p>
+                <button onclick="window.location.href='dashboard.html'" style="margin-bottom:12px;">Continue to Sign Up</button>
+                <p style="margin-top:10px; font-size:12px;">
+                    <a href="login.html" style="color:#999; text-decoration:none;">← Back to Login</a>
+                </p>
+            `;
+        }
+
+async function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('errorMsg');
+    const btn = document.getElementById('loginBtn');
+
+    errorMsg.style.display = 'none';
+
+    if (!email || !password) {
+        errorMsg.innerText = "Please fill in all fields";
+        errorMsg.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'Logging in…';
+
+    try {
+        const res = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            localStorage.setItem('cleaningUser', JSON.stringify(data.user));
+            localStorage.setItem('guestReadyToken', data.token);
+            window.location.href = 'dashboard.html';
+        } else if (data.billingRequired && data.token && data.user) {
+            localStorage.setItem('cleaningUser', JSON.stringify(data.user));
+            localStorage.setItem('guestReadyToken', data.token);
+            // pending_checkout users explore freely — don't force Stripe on login
+            if (data.user.billingStatus === 'pending_checkout') {
+                window.location.href = 'dashboard.html';
+            } else {
+                window.location.href = 'dashboard.html?openBilling=1';
+            }
+        } else {
+            localStorage.removeItem('cleaningUser');
+            localStorage.removeItem('guestReadyToken');
+            errorMsg.innerText = data.message || "Invalid login";
+            errorMsg.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = 'Log In';
+        }
+    } catch (err) {
+        errorMsg.innerText = "Server connection failed";
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btn.innerText = 'Log In';
+    }
+}
+
+        // --- SHOW/HIDE PASSWORD LOGIC ---
+function togglePassword(inputId, iconEl) {
+    const input = document.getElementById(inputId);
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        iconEl.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    } else {
+        input.type = 'password';
+        iconEl.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    }
+}
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('view') === 'register') {
+            showRegisterView();
+        }
+    </script>
+    <script src="/env-banner.js"></script>
+    <script src="/pwa.js"></script>
+</body>
+</html>

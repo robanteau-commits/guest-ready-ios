@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2D8B73">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Guest Ready - Messages</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/app-shell.css">
+    <script src="/sidebar.js"></script>
+    <script src="/mobile-nav.js"></script>
+    <style>
+        :root { --primary-teal: #2D8B73; --secondary-navy: #1F2937; --bg-light: #F9FAFB; --text-main: #222222; --text-muted: #717171; --white: #ffffff; --border-color: #DDDDDD; --font-body: 'DM Sans', sans-serif; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: var(--font-body); background: var(--bg-light); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        h1, h2, h3, h4 { font-family: var(--font-body); color: var(--text-main); font-weight: 700; }
+        button, a { touch-action: manipulation; cursor: pointer; }
+        .app-container { display: flex; width: 100%; height: 100%; }
+        .profile-actions { display: flex; gap: 15px; font-size: 13px; }
+        .action-link { cursor: pointer; color: var(--text-muted); font-weight: 500; }
+        .logout-link { color: #EF4444; }
+        .version-tag { font-size: 10px; color: #ccc; margin-top: 10px; text-align: left;}
+        .main-content { flex-grow: 1; display: flex; overflow: hidden; background: var(--white); }
+        .inbox-list-pane { width: 380px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; background: var(--white); }
+        .inbox-header { padding: 24px 24px 12px 24px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header-title { font-size: 24px; font-weight: 800; color: #222; }
+        .filter-row { display: flex; gap: 10px; margin-bottom: 5px; }
+        .filter-pill { padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .filter-pill.active { background: #222; color: white; border-color: #222; }
+        .filter-pill.inactive { background: #F7F7F7; color: #222; border-color: #DDDDDD; }
+        .filter-pill.inactive:hover { border-color: #222; }
+        .thread-list { flex-grow: 1; overflow-y: auto; padding-top: 10px; }
+        .thread-item { display: flex; gap: 16px; padding: 16px 24px; cursor: pointer; border-right: 4px solid transparent; transition: background 0.2s; }
+        .thread-item:hover { background: #F7F7F7; }
+        .thread-item.selected { background: #F7F7F7; border-right-color: #222; }
+        .thread-item.unread .thread-preview { font-weight: 700; color: #222; }
+        .thread-item.unread .thread-time { font-weight: 700; color: var(--primary-teal); }
+        .thread-avatar { width: 48px; height: 48px; background: #222; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; flex-shrink: 0; overflow:hidden;}
+        .thread-content { flex-grow: 1; min-width: 0; }
+        .thread-row-top { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .thread-name { font-size: 16px; font-weight: 600; color: #222; }
+        .thread-time { font-size: 12px; color: var(--text-muted); }
+        .thread-preview { font-size: 14px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-pane { flex-grow: 1; display: flex; flex-direction: column; background: var(--white); }
+        .chat-header { padding: 0 24px; height: 80px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+        .chat-header-info { display: flex; flex-direction: column; }
+        .chat-partner-name { font-size: 18px; font-weight: 700; color: #222; }
+        .chat-subtext { font-size: 12px; color: var(--text-muted); }
+        .chat-feed { flex-grow: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        .chat-input-wrapper { padding: 24px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; align-items: flex-end; }
+        .chat-input { flex-grow: 1; padding: 14px; border: 1px solid #B0B0B0; border-radius: 12px; outline: none; font-family: var(--font-body); font-size: 16px; resize: none; height: 52px; max-height: 150px; }
+        .chat-input:focus { border-color: #222; border-width: 2px; padding: 13px; }
+        .send-btn { width: 48px; height: 48px; border-radius: 50%; background: #222; color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: transform 0.1s; }
+        .send-btn:active { transform: scale(0.95); }
+        .bubble-row { display: flex; flex-direction: column; max-width: 70%; }
+        .bubble-row.me { align-self: flex-end; align-items: flex-end; }
+        .bubble-row.them { align-self: flex-start; align-items: flex-start; }
+        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 16px; line-height: 1.5; position: relative; }
+        .bubble-row.me .bubble { background: #222; color: white; border-bottom-right-radius: 4px; }
+        .bubble-row.them .bubble { background: #F7F7F7; color: #222; border-bottom-left-radius: 4px; border: 1px solid #E5E7EB; }
+        .bubble-time { font-size: 11px; color: #717171; margin-top: 4px; }
+        .system-msg { align-self: center; background: #F7F7F7; color: #717171; font-size: 12px; padding: 8px 16px; border-radius: 8px; margin: 10px 0; text-align: center; border: 1px solid #DDDDDD; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(31, 41, 55, 0.5); backdrop-filter: blur(2px); justify-content: center; align-items: center; z-index: 3000; }
+        .modal { background: var(--white); width: 90%; max-width: 500px; border-radius: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow: hidden; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px; overflow-y: auto; }
+        .modal-footer { padding: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #fafafa; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-family: var(--font-body); }
+        .save-btn { background: var(--primary-teal); color: white; padding: 8px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-family: var(--font-body); }
+        .close-btn { background: white; border: 1px solid #ddd; color: #333; padding: 8px 16px; border-radius:6px; cursor:pointer; font-weight:bold; font-family: var(--font-body); }
+        .delete-btn { background: #EF4444; color: white; border: 1px solid #EF4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: var(--font-body); }
+        
+        /* TOAST NOTIFICATION */
+        .toast { position: fixed; top: 20px; right: 20px; background: var(--primary-teal); color: white; padding: 14px 24px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-weight: bold; font-size: 14px; z-index: 5000; transform: translateX(150%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: var(--font-body); display: flex; align-items: center; gap: 10px; }
+        .toast.show { transform: translateX(0); }
+        .toast.error { background: #EF4444; }
+
+        @media (max-width: 768px) {
+            .main-content { padding-bottom: 60px; }
+            .inbox-list-pane { width: 100%; }
+            .chat-pane { display: none; width: 100%; position: absolute; top: 0; bottom: 60px; left: 0; z-index: 100; }
+            .main-content.view-chat .inbox-list-pane { display: none; }
+            .main-content.view-chat .chat-pane { display: flex; }
+            .back-btn { display: inline-block !important; margin-right: 15px; font-size: 20px; cursor: pointer; }
+            .toast { top: 20px; right: 10px; left: 10px; justify-content: center; }
+        }
+        .back-btn { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="customToast" class="toast"><span>✅</span> <span id="toastMessage">Success!</span></div>
+
+    <div class="app-container">
+        <div id="sidebarMount"></div>
+
+        <div id="mainContent" class="main-content">
+            <div class="inbox-list-pane">
+                <div class="inbox-header">
+                    <div class="header-top">
+                        <div class="header-title">Messages</div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-pill active">All</div>
+                        <div class="filter-pill inactive">Unread</div>
+                    </div>
+                </div>
+                <div id="threadList" class="thread-list">
+                    <div style="padding:40px; text-align:center; color:#ccc;">Loading...</div>
+                </div>
+            </div>
+
+            <div class="chat-pane">
+                <div id="chatHeader" class="chat-header" style="visibility: hidden;">
+                    <div class="chat-title" style="display: flex; align-items: center; gap: 12px;">
+                        <span class="back-btn" onclick="showInbox()">←</span>
+                        <div id="chatHeaderAvatar" style="width: 36px; height: 36px; border-radius: 50%; background: #222; color: white; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; overflow: hidden; display: none;"></div>
+                        <div class="chat-header-info">
+                            <span class="chat-partner-name" id="chatPartnerName">...</span>
+                            <span class="chat-subtext" id="chatSubtext">Guest Ready Chat</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="chatFeed" class="chat-feed">
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:#ccc;">
+                        <div style="font-size:40px; margin-bottom:10px;">💬</div>
+                        <div>Select a conversation</div>
+                    </div>
+                </div>
+                <div id="chatInputArea" class="chat-input-wrapper" style="visibility: hidden;">
+                    <textarea id="msgInput" class="chat-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMsg(); }"></textarea>
+                    <button class="send-btn" onclick="sendMsg()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mobileNavMount"></div>
+
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 style="margin:0; font-family: var(--font-body);">Profile</h3>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+                    <label for="updatePhotoInput" style="width: 80px; height: 80px; border-radius: 50%; background: #F9FAFB; border: 2px dashed var(--border-color); display: flex; justify-content: center; align-items: center; cursor: pointer; overflow: hidden; position: relative; transition: all 0.2s;" id="updatePhotoPreviewLabel">
+                        <span style="font-size: 24px; color: var(--text-muted);">📷</span>
+                    </label>
+                    <span style="font-size: 11px; color: var(--text-muted); margin-top: 5px; font-weight: bold;">Update Photo</span>
+                    <input type="file" id="updatePhotoInput" accept="image/*" style="display:none;" onchange="handleUpdatePhoto(this)">
+                </div>
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">First Name</label>
+                <input type="text" id="editFirst" class="auth-input">
+                <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Last Name</label>
+                <input type="text" id="editLast" class="auth-input">
+<label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Email</label>
+<input type="text" id="editEmail" class="auth-input">
+
+<label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Phone Number</label>
+<input type="text" id="editPhone" class="auth-input" placeholder="e.g. 704-555-1234">
+
+<div id="editCityGroup">
+                    <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Service Area</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="editCity" class="auth-input" placeholder="City" style="flex:2;">
+                        <input type="text" id="editState" class="auth-input" placeholder="State" style="flex:1;">
+                    </div>
+                </div>
+
+                <div id="editCleanerProGroup" style="display:none; margin-top: 15px;">
+                    <h4 style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px;">Professional Details</h4>
+                    
+                    <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Experience Level</label>
+                    <select id="editExperience" class="auth-input" style="margin-bottom: 15px;">
+                        <option value="">-- Select Experience --</option>
+                        <option value="Less than 1 year">Less than 1 year</option>
+                        <option value="1-3 years">1 - 3 years</option>
+                        <option value="3+ years">3+ years</option>
+                    </select>
+                    
+                    <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" id="editSupplies" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;"> 
+                        <label for="editSupplies" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: normal;">I bring my own cleaning supplies</label>
+                    </div>
+                    <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" id="editLaundry" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;"> 
+                        <label for="editLaundry" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: normal;">I can wash laundry off-site</label>
+                    </div>
+                    <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 15px;">
+                        <input type="checkbox" id="editInsured" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;"> 
+                        <label for="editInsured" style="font-size: 13px; cursor: pointer; text-transform: none; margin-bottom: 0; color: var(--text-main); font-weight: bold;">I am insured / bonded</label>
+                    </div>
+
+                    <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Unavailable Days</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #F9FAFB; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px;">
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Monday" style="margin-bottom:0; width: auto;"> Monday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Tuesday" style="margin-bottom:0; width: auto;"> Tuesday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Wednesday" style="margin-bottom:0; width: auto;"> Wednesday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Thursday" style="margin-bottom:0; width: auto;"> Thursday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Friday" style="margin-bottom:0; width: auto;"> Friday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Saturday" style="margin-bottom:0; width: auto;"> Saturday</label>
+                        <label style="font-size: 13px; display: flex; gap: 5px; text-transform: none; color: var(--text-main); font-weight: normal;"><input type="checkbox" class="edit-unavail-day" value="Sunday" style="margin-bottom:0; width: auto;"> Sunday</label>
+                    </div>
+                </div>
+
+            </div>
+<div class="modal-footer" style="justify-content: space-between;">
+    <button class="delete-btn" onclick="handleLogout()" style="padding: 8px 16px;">Log Out</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="close-btn" onclick="openBillingPortal()">Manage Subscription</button>
+<button class="close-btn" onclick="document.getElementById('profileModal').style.display='none'">Close</button>        
+        <button class="save-btn" onclick="saveProfile()">Save</button>
+    </div>
+</div>
+        </div>
+    </div>
+
+    <script>
+        // --- NEW: THE VIP WRISTBAND CHECKER ---
+        async function authenticatedFetch(url, options = {}) {
+            const token = localStorage.getItem('guestReadyToken');
+            if (!options.headers) options.headers = {};
+            options.headers['Authorization'] = `Bearer ${token}`;
+            
+            const response = await fetch(url, options);
+            if (response.status === 401) {
+                handleLogout();
+            }
+            return response;
+        }
+
+        // --- UI HELPERS (TOAST NOTIFICATION) ---
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('customToast');
+            const msgEl = document.getElementById('toastMessage');
+            toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+            toast.innerHTML = type === 'error' ? `<span>⚠️</span> <span>${message}</span>` : `<span>✅</span> <span>${message}</span>`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        let activeChatPartnerId = null;
+        let allUsersMap = {}; 
+        let userPhotosMap = {}; 
+        let user = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            renderSidebar({
+                activePage: 'messages',
+                versionTag: 'v2026-02-25.Secured'
+            });
+            renderMobileNav({
+                activePage: 'messages'
+            });
+
+            user = JSON.parse(localStorage.getItem('cleaningUser'));
+            const token = localStorage.getItem('guestReadyToken');
+            
+            // Require both user and token to view page
+            if (!user || !token) { window.location.href = 'index.html'; return; }
+            
+            document.getElementById('userWelcome').innerText = user.firstName || 'User';
+            
+            // Set Sidebar Avatar
+            const sidebarAv = document.getElementById('sidebarMyAvatar');
+            if (sidebarAv) {
+                if (user.profilePhoto) {
+                    sidebarAv.innerHTML = `<img src="${user.profilePhoto}" style="width:100%; height:100%; object-fit:cover;">`;
+                } else {
+                    sidebarAv.innerText = user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U';
+                }
+            }
+
+            if (user.role === 'Cleaner') {
+                if(document.getElementById('navProps')) document.getElementById('navProps').style.display = 'none';
+                if(document.getElementById('navCleaners')) document.getElementById('navCleaners').style.display = 'none';
+                if(document.getElementById('mobNavProps')) document.getElementById('mobNavProps').style.display = 'none';
+                if(document.getElementById('mobNavCleaners')) document.getElementById('mobNavCleaners').style.display = 'none';
+            }
+            await loadData();
+        });
+
+        async function updateMessageBadge() {
+            try {
+                const res = await authenticatedFetch(`/messages?userId=${user.id}`);
+                const msgs = await res.json();
+                const unreadCount = msgs.filter(m => {
+                    const sName = m.senderName ? String(m.senderName).toLowerCase() : "";
+                    const isSystem = sName === "system" || m.senderId === "system" || m.senderId === null;
+                    return !m.read && m.receiverId === user.id && !isSystem;
+                }).length;
+                
+                const badgeD = document.getElementById('msgNavBadge');
+                const badgeM = document.getElementById('mobMsgNavBadge');
+                if (unreadCount > 0) {
+                    if(badgeD) { badgeD.style.display = 'inline-block'; badgeD.innerText = unreadCount; }
+                    if(badgeM) { badgeM.style.display = 'inline-block'; badgeM.innerText = unreadCount; }
+                } else {
+                    if(badgeD) badgeD.style.display = 'none';
+                    if(badgeM) badgeM.style.display = 'none';
+                }
+            } catch(e) {}
+        }
+
+        async function loadData() {
+            try {
+                const uRes = await authenticatedFetch('/users');
+                const usersData = await uRes.json();
+                usersData.forEach(u => {
+                    allUsersMap[u.id] = u.firstName;
+                    if(u.profilePhoto) userPhotosMap[u.id] = u.profilePhoto;
+                });
+            } catch (e) { console.error(e); }
+            loadInbox();
+        }
+
+        async function loadInbox() {
+            await updateMessageBadge();
+            const res = await authenticatedFetch(`/messages?userId=${user.id}`);
+            let allMsgs = await res.json();
+            
+            allMsgs = allMsgs.filter(m => {
+                const sName = m.senderName ? String(m.senderName).toLowerCase() : "";
+                return sName !== "system" && m.senderId !== "system" && m.senderId !== null;
+            });
+
+            const threads = {};
+            allMsgs.forEach(m => {
+                let partnerId = m.senderId === user.id ? m.receiverId : m.senderId;
+                if (!partnerId) return;
+                if (!threads[partnerId]) {
+                    let realName = allUsersMap[partnerId];
+                    if (!realName && m.senderName) { realName = m.senderName; }
+                    threads[partnerId] = { partnerId: partnerId, msgs: [], unread: 0, displayName: realName || "User", lastTimestamp: 0 };
+                }
+                threads[partnerId].msgs.push(m);
+                if (!m.read && m.receiverId === user.id) threads[partnerId].unread++;
+            });
+
+            Object.values(threads).forEach(t => {
+                if (t.msgs.length > 0) {
+                    t.msgs.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+                    t.lastTimestamp = new Date(t.msgs[t.msgs.length - 1].timestamp).getTime();
+                } else { t.lastTimestamp = Date.now(); }
+            });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const linkPartnerId = urlParams.get('partnerId');
+            const linkPartnerName = urlParams.get('name');
+
+            if (linkPartnerId && !threads[linkPartnerId]) {
+                threads[linkPartnerId] = { partnerId: linkPartnerId, msgs: [], unread: 0, displayName: linkPartnerName || "New Chat", lastTimestamp: Date.now() };
+            }
+
+            const sortedPartners = Object.keys(threads).sort((a, b) => threads[b].lastTimestamp - threads[a].lastTimestamp);
+
+            const list = document.getElementById('threadList');
+            list.innerHTML = '';
+
+            if (sortedPartners.length === 0) {
+                list.innerHTML = `<div style="padding:40px; text-align:center; color:#ccc;">No messages yet.</div>`;
+                return;
+            }
+
+            sortedPartners.forEach(pid => {
+                const t = threads[pid];
+                let lastMsgText = "Drafting...";
+                let lastTime = new Date(t.lastTimestamp);
+                
+                if (t.msgs.length > 0) {
+                    const last = t.msgs[t.msgs.length - 1];
+                    const isMe = last.senderId === user.id;
+                    lastMsgText = (isMe ? 'You: ' : '') + last.text;
+                }
+                
+                let avatarHtml = '';
+                if (userPhotosMap[pid]) {
+                    avatarHtml = `<img src="${userPhotosMap[pid]}" style="width:100%; height:100%; object-fit:cover;">`;
+                } else {
+                    avatarHtml = t.displayName.substring(0,1).toUpperCase();
+                }
+                
+                const div = document.createElement('div');
+                div.className = `thread-item ${t.unread > 0 ? 'unread' : ''} ${activeChatPartnerId === pid ? 'selected' : ''}`;
+                div.onclick = () => selectThread(pid, t, div);
+                
+                div.innerHTML = `
+                    <div class="thread-avatar">${avatarHtml}</div>
+                    <div class="thread-content">
+                        <div class="thread-row-top">
+                            <span class="thread-name">${t.displayName}</span>
+                            <span class="thread-time">${lastTime.toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
+                        </div>
+                        <div class="thread-preview">${lastMsgText}</div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+
+            if (linkPartnerId && threads[linkPartnerId]) {
+                const threadIndex = sortedPartners.indexOf(linkPartnerId);
+                if (threadIndex >= 0) {
+                    const domElements = list.getElementsByClassName('thread-item');
+                    selectThread(linkPartnerId, threads[linkPartnerId], domElements[threadIndex]);
+                }
+            }
+        }
+
+        async function selectThread(partnerId, threadData, element) {
+            activeChatPartnerId = partnerId;
+            document.querySelectorAll('.thread-item').forEach(el => el.classList.remove('selected'));
+            if(element) { element.classList.add('selected'); element.classList.remove('unread'); }
+            if (window.innerWidth <= 768) document.getElementById('mainContent').classList.add('view-chat');
+
+            document.getElementById('chatHeader').style.visibility = 'visible';
+            document.getElementById('chatInputArea').style.visibility = 'visible';
+            document.getElementById('chatPartnerName').innerText = threadData.displayName;
+            
+            // --- SET CHAT HEADER AVATAR ---
+            const hAvatar = document.getElementById('chatHeaderAvatar');
+            hAvatar.style.display = 'flex';
+            if (userPhotosMap[partnerId]) {
+                hAvatar.innerHTML = `<img src="${userPhotosMap[partnerId]}" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                hAvatar.innerHTML = threadData.displayName.substring(0,1).toUpperCase();
+            }
+
+            const feed = document.getElementById('chatFeed');
+            feed.innerHTML = '';
+            
+            if (threadData.msgs.length === 0) {
+                feed.innerHTML = '<div style="text-align:center;color:#ccc;margin-top:50px;">Start the conversation...</div>';
+            } else {
+                threadData.msgs.forEach(m => {
+                    const isMe = m.senderId === user.id;
+                    const row = document.createElement('div');
+                    row.className = `bubble-row ${isMe ? 'me' : 'them'}`;
+                    row.innerHTML = `<div class="bubble">${m.text}</div><span class="bubble-time">${new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>`;
+                    feed.appendChild(row);
+                });
+            }
+            feed.scrollTop = feed.scrollHeight;
+
+            if (threadData.unread > 0) {
+                for (const m of threadData.msgs) {
+                    if(!m.read && m.receiverId === user.id) {
+                         await authenticatedFetch('/messages/read', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: user.id, jobId: m.jobId }) });
+                    }
+                }
+                threadData.unread = 0;
+                updateMessageBadge();
+            }
+        }
+
+        async function sendMsg() {
+            const input = document.getElementById('msgInput');
+            const text = input.value.trim();
+            if (!text || !activeChatPartnerId) return;
+            
+            const feed = document.getElementById('chatFeed');
+            if (feed.innerText === "Start the conversation...") feed.innerHTML = '';
+
+            const row = document.createElement('div');
+            row.className = 'bubble-row me';
+            row.innerHTML = `<div class="bubble">${text}</div><span class="bubble-time">Now</span>`;
+            feed.appendChild(row);
+            feed.scrollTop = feed.scrollHeight;
+            input.value = '';
+
+            await authenticatedFetch('/messages', { 
+                method: 'POST', headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ jobId: `chat_${user.id}_${activeChatPartnerId}`, senderId: user.id, receiverId: activeChatPartnerId, text: text, senderName: user.firstName }) 
+            });
+        }
+
+        function showInbox() { document.getElementById('mainContent').classList.remove('view-chat'); loadInbox(); }
+
+// --- SHARED PROFILE & LOGOUT LOGIC ---
+    let updatedPhotoBase64 = null;
+
+    function handleUpdatePhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; 
+                    let height = img.height;
+                    const MAX_SIZE = 400;
+                    
+                    if (width > height && width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } 
+                    else if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                    
+                    canvas.width = width; 
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    updatedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    const label = document.getElementById('updatePhotoPreviewLabel');
+                    if (label) {
+                        label.innerHTML = `<img src="${updatedPhotoBase64}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                        label.style.border = "none";
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+        function openProfileModal() {
+            const user = JSON.parse(localStorage.getItem('cleaningUser'));
+            if(!user) return;
+            
+if(document.getElementById('editFirst')) document.getElementById('editFirst').value = user.firstName || '';
+if(document.getElementById('editLast')) document.getElementById('editLast').value = user.lastName || '';
+if(document.getElementById('editEmail')) document.getElementById('editEmail').value = user.email || '';
+if(document.getElementById('editPhone')) document.getElementById('editPhone').value = user.phone || '';
+            
+            updatedPhotoBase64 = user.profilePhoto || null;
+            const photoLabel = document.getElementById('updatePhotoPreviewLabel');
+            if (photoLabel) {
+                if (user.profilePhoto) {
+                    photoLabel.innerHTML = `<img src="${user.profilePhoto}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    photoLabel.style.border = "none";
+                } else {
+                    photoLabel.innerHTML = `<span style="font-size: 24px; color: var(--text-muted);">📷</span>`;
+                    photoLabel.style.border = "2px dashed var(--border-color)";
+                }
+            }
+            
+            const cityGroup = document.getElementById('editCityGroup');
+            if (cityGroup) {
+                if (user.role === 'Cleaner') {
+                    cityGroup.style.display = 'block';
+                    let city = user.serviceCity || ''; let state = '';
+                    if (city.includes(',')) { const parts = city.split(','); city = parts[0].trim(); state = parts[1].trim(); }
+                    if(document.getElementById('editCity')) document.getElementById('editCity').value = city; 
+                    if(document.getElementById('editState')) document.getElementById('editState').value = state;
+                } else { cityGroup.style.display = 'none'; }
+            }
+
+            const proGroup = document.getElementById('editCleanerProGroup');
+            if (proGroup) {
+                if (user.role === 'Cleaner') {
+                    proGroup.style.display = 'block';
+                    if(document.getElementById('editExperience')) document.getElementById('editExperience').value = user.experience || '';
+                    if(document.getElementById('editSupplies')) document.getElementById('editSupplies').checked = !!user.bringsSupplies;
+                    if(document.getElementById('editLaundry')) document.getElementById('editLaundry').checked = !!user.laundryOffsite;
+                    if(document.getElementById('editInsured')) document.getElementById('editInsured').checked = !!user.insured;
+                    
+                    document.querySelectorAll('.edit-unavail-day').forEach(cb => {
+                        cb.checked = user.unavailableDays && user.unavailableDays.includes(cb.value);
+                    });
+                } else {
+                    proGroup.style.display = 'none';
+                }
+            }
+
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+
+        async function saveProfile() {
+            const user = JSON.parse(localStorage.getItem('cleaningUser'));
+            if(!user) return;
+            
+const newFirst = document.getElementById('editFirst') ? document.getElementById('editFirst').value : user.firstName;
+const newLast = document.getElementById('editLast') ? document.getElementById('editLast').value : user.lastName;
+const newEmail = document.getElementById('editEmail') ? document.getElementById('editEmail').value : user.email;
+const newPhone = document.getElementById('editPhone') ? document.getElementById('editPhone').value : user.phone;
+            
+const updates = { id: user.id, firstName: newFirst, lastName: newLast, email: newEmail, phone: newPhone, profilePhoto: updatedPhotoBase64 };
+            if (user.role === 'Cleaner') {
+                updates.experience = document.getElementById('editExperience') ? document.getElementById('editExperience').value : user.experience;
+                updates.bringsSupplies = document.getElementById('editSupplies') ? document.getElementById('editSupplies').checked : user.bringsSupplies;
+                updates.laundryOffsite = document.getElementById('editLaundry') ? document.getElementById('editLaundry').checked : user.laundryOffsite;
+                updates.insured = document.getElementById('editInsured') ? document.getElementById('editInsured').checked : user.insured;
+                
+                const unavailDays = [];
+                document.querySelectorAll('.edit-unavail-day:checked').forEach(cb => unavailDays.push(cb.value));
+                updates.unavailableDays = unavailDays;
+            }
+
+            const cityEl = document.getElementById('editCity');
+            const stateEl = document.getElementById('editState');
+            
+            if (cityEl && stateEl && user.role === 'Cleaner') {
+                const newCityVal = cityEl.value.trim(); const newStateVal = stateEl.value.trim();
+                const fullLocationString = (newCityVal && newStateVal) ? `${newCityVal}, ${newStateVal}` : newCityVal;
+                
+                if (fullLocationString !== user.serviceCity) {
+                    updates.serviceCity = fullLocationString;
+                    try {
+                        // Note: External Nominatim API does NOT use authenticatedFetch
+                        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullLocationString)}`);
+                        const geoData = await geoRes.json();
+                        if (geoData && geoData.length > 0) {
+                            const lat = parseFloat(geoData[0].lat); const lon = parseFloat(geoData[0].lon);
+                            updates.location = { type: "Point", coordinates: [lon, lat] };
+                        }
+                    } catch (e) { console.error("Geocoding failed", e); }
+                }
+            }
+
+            try {
+                const res = await authenticatedFetch('/user/update', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(updates) });
+                const data = await res.json();
+                if (data.success) { 
+                    const mergedUser = { ...user, ...data.user }; 
+                    
+                    if (updatedPhotoBase64) mergedUser.profilePhoto = updatedPhotoBase64;
+
+                    localStorage.setItem('cleaningUser', JSON.stringify(mergedUser)); 
+                    showToast("Profile Updated!"); 
+                    setTimeout(() => location.reload(), 1000); 
+                } else { showToast("Update failed.", "error"); }
+            } catch(e) { console.error(e); showToast("Error updating profile.", "error"); }
+        }
+
+        window.onclick = function(e) { if(e.target.className === 'modal-overlay') e.target.style.display='none'; }
+        
+async function openBillingPortal() {
+    try {
+        const token = localStorage.getItem('guestReadyToken');
+
+        const res = await fetch('/billing/portal', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.url) {
+            window.location.href = data.url;
+            return;
+        }
+
+        showToast(data.message || 'Unable to open billing portal.', 'error');
+    } catch (e) {
+        showToast('Unable to open billing portal.', 'error');
+    }
+}
+
+function handleLogout() { 
+    localStorage.removeItem('cleaningUser'); 
+    localStorage.removeItem('guestReadyToken'); // Clear the wristband on logout
+    window.location.href = 'index.html'; 
+}
+    </script>
+    <script src="/env-banner.js"></script>
+    <script src="/pwa.js"></script>
+</body>
+</html>
