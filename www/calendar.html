@@ -467,6 +467,13 @@ if (user.role === 'Cleaner') {
     if (navCleaners) navCleaners.style.display = 'none';
     if (mobNavProps) mobNavProps.style.display = 'none';
     if (mobNavCleaners) mobNavCleaners.style.display = 'none';
+
+    if (user.accountType === 'company') {
+        const navDispatch = document.getElementById('navDispatch');
+        const mobNavDispatch = document.getElementById('mobNavDispatch');
+        if (navDispatch) navDispatch.style.display = '';
+        if (mobNavDispatch) mobNavDispatch.style.display = '';
+    }
 } else { 
                 await fetchCleaners();
                 await fetchProperties(user);

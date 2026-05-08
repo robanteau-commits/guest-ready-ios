@@ -43,7 +43,7 @@ function renderSidebar(options = {}) {
         </a>
 
         <a href="dispatch.html" class="nav-item ${activePage === 'dispatch' ? 'active' : ''}" id="navDispatch" style="display:none;">
-          <i class="fa-solid fa-people-group"></i> My Team
+          <i class="fa-solid fa-users"></i> My Team
         </a>
 
         <a href="ai.html" class="nav-item ${activePage === 'ai' ? 'active' : ''}">
@@ -77,12 +77,21 @@ function renderSidebar(options = {}) {
     </div>
   `;
 
-  // Show Dispatch link for company-type cleaner accounts — must run after innerHTML is set
+  // Role-based nav visibility — must run after innerHTML is set
   try {
     const user = JSON.parse(localStorage.getItem('cleaningUser'));
-    if (user && user.role === 'Cleaner' && user.accountType === 'company') {
-      const link = document.getElementById('navDispatch');
-      if (link) link.style.display = '';
+    if (user && user.role === 'Cleaner') {
+      // Hide Host-only links for Cleaner accounts
+      const navProps = document.getElementById('navProps');
+      const navCleaners = document.getElementById('navCleaners');
+      if (navProps) navProps.style.display = 'none';
+      if (navCleaners) navCleaners.style.display = 'none';
+
+      // Show My Team for company-type cleaner accounts
+      if (user.accountType === 'company') {
+        const link = document.getElementById('navDispatch');
+        if (link) link.style.display = '';
+      }
     }
   } catch (e) {}
 }

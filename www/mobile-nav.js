@@ -30,7 +30,7 @@ function renderMobileNav(options = {}) {
       </a>
 
       <a href="dispatch.html" class="mobile-nav-item ${activePage === 'dispatch' ? 'active' : ''}" id="mobNavDispatch" style="display:none;">
-        <span><i class="fa-solid fa-people-group"></i></span>My Team
+        <span><i class="fa-solid fa-users"></i></span>My Team
       </a>
 
       <a onclick="openProfileModal()" class="mobile-nav-item">
@@ -39,12 +39,21 @@ function renderMobileNav(options = {}) {
     </div>
   `;
 
-  // Show Dispatch for company-type cleaner accounts
+  // Role-based nav visibility — must run after innerHTML is set
   try {
     const user = JSON.parse(localStorage.getItem('cleaningUser'));
-    if (user && user.role === 'Cleaner' && user.accountType === 'company') {
-      const link = document.getElementById('mobNavDispatch');
-      if (link) link.style.display = '';
+    if (user && user.role === 'Cleaner') {
+      // Hide Host-only links for Cleaner accounts
+      const mobNavProps = document.getElementById('mobNavProps');
+      const mobNavCleaners = document.getElementById('mobNavCleaners');
+      if (mobNavProps) mobNavProps.style.display = 'none';
+      if (mobNavCleaners) mobNavCleaners.style.display = 'none';
+
+      // Show My Team for company-type cleaner accounts
+      if (user.accountType === 'company') {
+        const link = document.getElementById('mobNavDispatch');
+        if (link) link.style.display = '';
+      }
     }
   } catch (e) {}
 }

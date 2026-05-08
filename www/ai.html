@@ -473,9 +473,15 @@
 
     const navProps = document.getElementById('navProps');
     const navCleaners = document.getElementById('navCleaners');
-
     if (navProps) navProps.style.display = 'none';
     if (navCleaners) navCleaners.style.display = 'none';
+
+    if (user.accountType === 'company') {
+      const navDispatch = document.getElementById('navDispatch');
+      const mobNavDispatch = document.getElementById('mobNavDispatch');
+      if (navDispatch) navDispatch.style.display = '';
+      if (mobNavDispatch) mobNavDispatch.style.display = '';
+    }
   }
 
   function escapeHtml(text) {
