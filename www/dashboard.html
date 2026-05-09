@@ -13,7 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/app-shell.css">
 <script src="/sidebar.js"></script>
-<script src="/mobile-nav.js"></script>    
+<script src="/mobile-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --primary-teal: #2D8B73; --secondary-navy: #1F2937; --bg-light: #F9FAFB; --text-main: #374151; --text-muted: #6B7280; --white: #ffffff; --border-color: #E5E7EB; --font-heading: 'Merriweather', serif; --font-body: 'DM Sans', sans-serif; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -647,6 +648,7 @@ fetch('/env')
                 <button id="cleanerCancelJobBtn" class="cancel-job-btn" onclick="cleanerCancelJob()">🚫 Cancel Clean</button>
                 <button id="cancelRequestBtn" class="cancel-request-btn" onclick="cancelRequest()">❌ Cancel App</button>
                 <button id="likeCleanerBtn" class="save-btn" style="display:none; background:#F59E0B;" onclick="likeCleaner()">👍 Like Cleaner</button>
+                <button id="downloadInvoiceBtn" class="save-btn" style="display:none; background:#2D8B73;" onclick="generateInvoicePDF()">📄 Download Invoice</button>
                 <button id="btnSaveAssignment" class="save-btn" onclick="saveAssignment()" disabled>Save</button>
                 <button class="close-btn" onclick="closeModal('jobModal')">Close</button>
             </div>
@@ -670,7 +672,7 @@ fetch('/env')
         </div>
     </div>
 </div>
-    <div id="adminUserModal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>Edit User</h3></div><div class="modal-body"><input type="hidden" id="adminUserId"><label>First</label><input type="text" id="adminUserFirst" class="auth-input"><label>Last</label><input type="text" id="adminUserLast" class="auth-input"><label>Email</label><input type="text" id="adminUserEmail" class="auth-input"><label>Role</label><select id="adminUserRole" class="auth-input"><option value="Host">Host</option><option value="Cleaner">Cleaner</option><option value="Admin">Admin</option></select><label>Account Type <span style="font-size:11px; font-weight:400; color:#888;">(cleaners only)</span></label><select id="adminUserAccountType" class="auth-input"><option value="individual">Individual</option><option value="company">Cleaning Company</option></select><label>Service City <span style="font-size:11px; font-weight:400; color:#888;">(cleaners only — city name must match job city exactly)</span></label><input type="text" id="adminUserCity" class="auth-input" placeholder="e.g. Pineville"><label>Pass</label><input type="text" id="adminUserPass" class="auth-input" placeholder="Leave blank to keep"><div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px; flex-wrap:wrap;"><button class="delete-btn" onclick="adminDeleteUser()">Delete</button><button class="close-btn" onclick="adminCompUser()">Comp User</button><button class="close-btn" onclick="adminUncompUser()">Uncomp User</button><button class="save-btn" onclick="adminSaveUser()">Save</button></div></div><div class="modal-footer"><button class="close-btn" onclick="closeModal('adminUserModal')">Close</button></div></div></div>
+    <div id="adminUserModal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>Edit User</h3></div><div class="modal-body"><input type="hidden" id="adminUserId"><label>First</label><input type="text" id="adminUserFirst" class="auth-input"><label>Last</label><input type="text" id="adminUserLast" class="auth-input"><label>Email</label><input type="text" id="adminUserEmail" class="auth-input"><label>Role</label><select id="adminUserRole" class="auth-input"><option value="Host">Host</option><option value="Cleaner">Cleaner</option><option value="Admin">Admin</option></select><label>Account Type <span style="font-size:11px; font-weight:400; color:#888;">(cleaners only)</span></label><select id="adminUserAccountType" class="auth-input"><option value="individual">Individual</option><option value="company">Cleaning Company</option></select><label>Service City <span style="font-size:11px; font-weight:400; color:#888;">(cleaners only — city name must match job city exactly)</span></label><input type="text" id="adminUserCity" class="auth-input" placeholder="e.g. Pineville"><label>Pass</label><input type="text" id="adminUserPass" class="auth-input" placeholder="Leave blank to keep"><div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px; flex-wrap:wrap;"><button class="delete-btn" onclick="adminDeleteUser()">Delete</button><button class="close-btn" onclick="adminCompUser()">Comp User</button><button class="close-btn" onclick="adminUncompUser()">Uncomp User</button><button class="save-btn" style="background:#7C3AED;" onclick="adminImpersonate()">Proxy As</button><button class="save-btn" onclick="adminSaveUser()">Save</button></div></div><div class="modal-footer"><button class="close-btn" onclick="closeModal('adminUserModal')">Close</button></div></div></div>
     <div id="adminPropModal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>Edit Property</h3></div><div class="modal-body"><label>Name</label><input type="text" id="admPropName" class="auth-input"><div style="display:flex; justify-content:space-between; margin-top:20px;"><button class="delete-btn" onclick="adminDeleteProp()">Delete</button><button class="save-btn" onclick="adminSaveProp()">Save</button></div></div><div class="modal-footer"><button class="close-btn" onclick="closeModal('adminPropModal')">Close</button></div></div></div>
 
 <div id="profileModal" class="modal-overlay">
@@ -740,6 +742,16 @@ fetch('/env')
                 </div>
             </div>
 
+            <!-- Push Notification Preferences -->
+            <div id="editPushGroup" style="margin-top: 15px;">
+                <h4 style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px;">Push Notifications</h4>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 8px;">
+                    <label for="editPushOptIn" style="font-size: 13px; font-weight: bold; color: var(--text-main); text-transform: none; cursor: pointer; margin-bottom: 0;">App push notifications</label>
+                    <input type="checkbox" id="editPushOptIn" style="width: 18px; height: 18px; cursor: pointer; margin-bottom: 0;">
+                </div>
+                <p style="font-size:12px; color:var(--text-muted); margin:0 0 4px;">Receive notifications even when the app is closed. Uses the same notification preferences as text messages.</p>
+            </div>
+
             <!-- SMS Notification Preferences -->
             <div id="editSmsGroup" style="margin-top: 15px;">
                 <h4 style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px;">Text Notifications</h4>
@@ -798,7 +810,7 @@ fetch('/env')
 <div class="modal-footer" style="justify-content: space-between;">
     <button class="delete-btn" onclick="handleLogout()" style="padding: 8px 16px;">Log Out</button>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
-<button class="close-btn" onclick="openBillingPortal()">Manage Billing</button>
+<button id="manageBillingBtn" class="close-btn" onclick="openBillingPortal()" style="display:none;">Manage Billing</button>
         <button class="close-btn" onclick="document.getElementById('profileModal').style.display='none'">Cancel</button>
 <button class="save-btn" onclick="saveProfile()">Save</button>
     </div>
@@ -974,7 +986,7 @@ async function authenticatedFetch(url, options = {}) {
         const mount = document.getElementById('billingBannerMount');
         const user = getStoredUser();
 
-        if (!mount || !user || user.role === 'Admin' || user.billingStatus === 'comped' || user.billingStatus === 'active' || user.billingStatus === 'pending_checkout') {
+        if (!mount || !user || user.role === 'Admin' || user.role === 'Host' || user.role === 'Cleaner' || user.billingStatus === 'comped' || user.billingStatus === 'active' || user.billingStatus === 'pending_checkout') {
             if (mount) mount.innerHTML = '';
             return;
         }
@@ -1943,6 +1955,29 @@ async function removeAdminTask(id, taskLabel) {
         loadAdminData();
     }
 
+    async function adminImpersonate() {
+        if (!selectedUser) return;
+        const confirmed = await customConfirm(
+            `Proxy as ${selectedUser.firstName} ${selectedUser.lastName} (${selectedUser.role})?\n\nYou will see the app exactly as they do. A banner will let you exit at any time.`,
+            'Proxy As User'
+        );
+        if (!confirmed) return;
+
+        const res = await authenticatedFetch(`/admin/impersonate/${selectedUser.id}`, { method: 'POST' });
+        const data = await res.json();
+        if (!data.success) return showToast(data.message || 'Impersonation failed.', 'error');
+
+        // Back up admin session
+        localStorage.setItem('adminUser',  localStorage.getItem('cleaningUser'));
+        localStorage.setItem('adminToken', localStorage.getItem('guestReadyToken'));
+
+        // Switch to target user session
+        localStorage.setItem('cleaningUser', JSON.stringify(data.user));
+        localStorage.setItem('guestReadyToken', data.token);
+
+        window.location.href = 'dashboard.html';
+    }
+
     async function adminCompUser() {
         if (!selectedUser) return;
 
@@ -2428,7 +2463,7 @@ async function openJobModal(job) {
         'postMarketBtn','postTeamBtn','unpostBtn','unassignBtn','requestBtn','pendingBtn',
         'acceptOfferBtn','declineOfferBtn','cancelJobBtn','cleanerCancelJobBtn',
         'acceptRescheduleBtn','declineRescheduleBtn','likeCleanerBtn','startCleanBtn',
-        'completeCleanBtn','adminDeleteJobBtn','cancelRequestBtn'
+        'completeCleanBtn','adminDeleteJobBtn','cancelRequestBtn','downloadInvoiceBtn'
     ].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -2532,17 +2567,15 @@ async function openJobModal(job) {
                     unassignBtn.style.opacity = '0.5';
                     unassignBtn.style.cursor = 'not-allowed';
                 }
-                const cancelBtn = document.getElementById('cancelJobBtn');
-                if (cancelBtn) {
-                    cancelBtn.disabled = true;
-                    cancelBtn.style.opacity = '0.5';
-                    cancelBtn.style.cursor = 'not-allowed';
-                }
+                if (document.getElementById('cancelJobBtn')) document.getElementById('cancelJobBtn').style.display = 'none';
             } else if (job.status === 'completed') {
                 if (document.getElementById('unassignBtn')) document.getElementById('unassignBtn').style.display = 'none';
                 if (document.getElementById('cancelJobBtn')) document.getElementById('cancelJobBtn').style.display = 'none';
                 if ((!job.hostFeedback || !job.hostFeedback.liked) && document.getElementById('likeCleanerBtn')) {
                     document.getElementById('likeCleanerBtn').style.display = 'block';
+                }
+                if (job.pay && document.getElementById('downloadInvoiceBtn')) {
+                    document.getElementById('downloadInvoiceBtn').style.display = 'block';
                 }
             } else {
                 const unassignBtn = document.getElementById('unassignBtn');
@@ -2636,17 +2669,17 @@ async function openJobModal(job) {
                     badgeEl.style.color = '#065F46';
                 }
             } else {
-                document.getElementById('cleanerCancelJobBtn').style.display = 'block';
-                if (badgeEl) {
-                    badgeEl.style.display = 'block';
-                    badgeEl.innerText = '✅ You are assigned to this job.';
-                    badgeEl.style.background = '#D1FAE5';
-                    badgeEl.style.color = '#065F46';
-                }
                 if (job.status === 'assigned') {
+                    document.getElementById('cleanerCancelJobBtn').style.display = 'block';
                     document.getElementById('startCleanBtn').style.display = 'block';
                 } else if (job.status === 'in_progress') {
                     document.getElementById('completeCleanBtn').style.display = 'block';
+                }
+                if (badgeEl) {
+                    badgeEl.style.display = 'block';
+                    badgeEl.innerText = job.status === 'completed' ? '✅ Clean completed.' : '✅ You are assigned to this job.';
+                    badgeEl.style.background = job.status === 'completed' ? '#E5E7EB' : '#D1FAE5';
+                    badgeEl.style.color = job.status === 'completed' ? '#111827' : '#065F46';
                 }
             }
         } else if (job.requests && job.requests.some(r => r.id === user.id)) {
@@ -3048,6 +3081,8 @@ async function unassignJob() {
 
     function openProfileModal() {
         const user = JSON.parse(localStorage.getItem('cleaningUser')); if(!user) return;
+        const billingBtn = document.getElementById('manageBillingBtn');
+        if (billingBtn) billingBtn.style.display = user.role === 'Admin' ? 'inline-block' : 'none';
 if(document.getElementById('editFirst')) document.getElementById('editFirst').value = user.firstName || '';
 if(document.getElementById('editLast')) document.getElementById('editLast').value = user.lastName || '';
 if(document.getElementById('editEmail')) document.getElementById('editEmail').value = user.email || '';
@@ -3084,6 +3119,12 @@ if(document.getElementById('editPhone')) document.getElementById('editPhone').va
             } else {
                 proGroup.style.display = 'none';
             }
+        }
+
+        // Populate Push notification preference
+        const pushOptInEl = document.getElementById('editPushOptIn');
+        if (pushOptInEl) {
+            pushOptInEl.checked = !!user.pushOptIn;
         }
 
         // Populate SMS notification preferences
@@ -3198,8 +3239,20 @@ const updates = {
     smsCleanerConfirmedReschedule: document.getElementById('editSmsCleanerConfirmedReschedule') ? document.getElementById('editSmsCleanerConfirmedReschedule').checked : (user.smsCleanerConfirmedReschedule !== false),
     smsCleanerDeclinedReschedule: document.getElementById('editSmsCleanerDeclinedReschedule') ? document.getElementById('editSmsCleanerDeclinedReschedule').checked : (user.smsCleanerDeclinedReschedule !== false),
     smsDateChanged: document.getElementById('editSmsDateChanged') ? document.getElementById('editSmsDateChanged').checked : (user.smsDateChanged !== false),
-    smsJobCancelled: document.getElementById('editSmsJobCancelled') ? document.getElementById('editSmsJobCancelled').checked : (user.smsJobCancelled !== false)
+    smsJobCancelled: document.getElementById('editSmsJobCancelled') ? document.getElementById('editSmsJobCancelled').checked : (user.smsJobCancelled !== false),
+    pushOptIn: document.getElementById('editPushOptIn') ? document.getElementById('editPushOptIn').checked : !!user.pushOptIn
 };
+
+        // Handle push subscription when user enables push
+        const wantsPush = updates.pushOptIn;
+        const hadPush = !!user.pushOptIn;
+        if (wantsPush && !hadPush) {
+            const ok = await requestAndSubscribePush();
+            if (!ok) updates.pushOptIn = false;
+        } else if (!wantsPush && hadPush) {
+            const token = localStorage.getItem('guestReadyToken');
+            if (token) fetch('/push/unsubscribe', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }).catch(() => {});
+        }
         if (user.role === 'Cleaner') {
             updates.experience = document.getElementById('editExperience') ? document.getElementById('editExperience').value : user.experience;
             updates.bringsSupplies = document.getElementById('editSupplies') ? document.getElementById('editSupplies').checked : user.bringsSupplies;
@@ -3455,6 +3508,205 @@ async function startClean() {
     }
 }
 
+function generateInvoicePDF() {
+    if (!selectedJob) return;
+    const { jsPDF } = window.jspdf;
+    if (!jsPDF) return showToast('PDF library not loaded. Please refresh and try again.', 'error');
+
+    const job = selectedJob;
+    const host = JSON.parse(localStorage.getItem('cleaningUser') || '{}');
+    const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+
+    const teal   = [45, 139, 115];
+    const navy   = [31, 41, 55];
+    const gray   = [107, 114, 128];
+    const light  = [243, 244, 246];
+    const black  = [30, 30, 30];
+    const white  = [255, 255, 255];
+
+    const pageW  = doc.internal.pageSize.getWidth();
+    const margin = 48;
+    const contentW = pageW - margin * 2;
+
+    // --- Header bar ---
+    doc.setFillColor(...teal);
+    doc.rect(0, 0, pageW, 72, 'F');
+    doc.setTextColor(...white);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('Guest Ready Pro', margin, 38);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Cleaners and Hosts, In Sync', margin, 56);
+
+    // Invoice label top-right
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('INVOICE', pageW - margin, 42, { align: 'right' });
+
+    // --- Invoice meta ---
+    const invoiceNum = 'GR-' + (job.uid || job.id || '').slice(-6).toUpperCase();
+    const completedTs = job.execution?.completedAt;
+    const invoiceDate = completedTs
+        ? new Date(completedTs).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    let y = 100;
+    doc.setTextColor(...navy);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Invoice #:', pageW - margin - 160, y, { align: 'left' });
+    doc.setFont('helvetica', 'normal');
+    doc.text(invoiceNum, pageW - margin, y, { align: 'right' });
+    y += 16;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice Date:', pageW - margin - 160, y, { align: 'left' });
+    doc.setFont('helvetica', 'normal');
+    doc.text(invoiceDate, pageW - margin, y, { align: 'right' });
+
+    // --- Bill To / From ---
+    y = 100;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(...gray);
+    doc.text('BILL TO', margin, y);
+    y += 14;
+    doc.setTextColor(...black);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(`${host.firstName || ''} ${host.lastName || ''}`.trim() || 'Host', margin, y);
+    if (host.email) {
+        y += 14;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(...gray);
+        doc.text(host.email, margin, y);
+    }
+
+    y += 30;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(...gray);
+    doc.text('SERVICE PROVIDER', margin, y);
+    y += 14;
+    doc.setTextColor(...black);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    const cleanerName = job.cleaner
+        ? `${job.cleaner.firstName || ''} ${job.cleaner.lastName || ''}`.trim()
+        : 'Cleaner';
+    doc.text(cleanerName, margin, y);
+
+    // --- Divider ---
+    y += 24;
+    doc.setDrawColor(...light);
+    doc.setLineWidth(1);
+    doc.line(margin, y, pageW - margin, y);
+
+    // --- Property info ---
+    y += 20;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(...gray);
+    doc.text('PROPERTY', margin, y);
+    y += 14;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...black);
+    doc.text(job.property || 'Property', margin, y);
+    y += 14;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(...gray);
+    doc.text(job.address || '', margin, y);
+    if (job.bedrooms || job.bathrooms || job.sqft) {
+        y += 13;
+        const specs = [
+            job.bedrooms ? `${job.bedrooms} bed` : '',
+            job.bathrooms ? `${job.bathrooms} bath` : '',
+            job.sqft ? `${job.sqft} sqft` : ''
+        ].filter(Boolean).join('  |  ');
+        doc.text(specs, margin, y);
+    }
+
+    // --- Service table header ---
+    y += 28;
+    doc.setFillColor(...navy);
+    doc.rect(margin, y - 14, contentW, 22, 'F');
+    doc.setTextColor(...white);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('SERVICE', margin + 8, y);
+    doc.text('DATE', margin + contentW * 0.5, y, { align: 'center' });
+    doc.text('AMOUNT', pageW - margin - 8, y, { align: 'right' });
+
+    // --- Service row ---
+    y += 22;
+    doc.setFillColor(...light);
+    doc.rect(margin, y - 14, contentW, 22, 'F');
+    doc.setTextColor(...black);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('Turnover Cleaning', margin + 8, y);
+    doc.text(job.date || '', margin + contentW * 0.5, y, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(`$${Number(job.pay).toFixed(2)}`, pageW - margin - 8, y, { align: 'right' });
+
+    // --- Total ---
+    y += 28;
+    doc.setDrawColor(...teal);
+    doc.setLineWidth(1.5);
+    doc.line(pageW - margin - 160, y, pageW - margin, y);
+    y += 16;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...navy);
+    doc.text('Total Due:', pageW - margin - 160, y);
+    doc.setTextColor(...teal);
+    doc.setFontSize(14);
+    doc.text(`$${Number(job.pay).toFixed(2)}`, pageW - margin, y, { align: 'right' });
+
+    // --- Completed tasks ---
+    const checklist = (job.execution?.checklist || []).filter(t => t.done);
+    if (checklist.length > 0) {
+        y += 32;
+        doc.setDrawColor(...light);
+        doc.setLineWidth(1);
+        doc.line(margin, y, pageW - margin, y);
+        y += 18;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...gray);
+        doc.text('COMPLETED TASKS', margin, y);
+        y += 14;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...black);
+        const cols = 2;
+        const colW = contentW / cols;
+        checklist.forEach((t, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const tx = margin + col * colW;
+            const ty = y + row * 14;
+            if (ty > doc.internal.pageSize.getHeight() - 60) return; // skip if off page
+            doc.text(`+ ${t.label}`, tx, ty);
+        });
+        y += Math.ceil(checklist.length / cols) * 14;
+    }
+
+    // --- Footer ---
+    const footerY = doc.internal.pageSize.getHeight() - 32;
+    doc.setFillColor(...teal);
+    doc.rect(0, footerY - 6, pageW, 38, 'F');
+    doc.setTextColor(...white);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Generated by Guest Ready Pro  -  guestreadyapp.com', pageW / 2, footerY + 10, { align: 'center' });
+
+    const fileName = `Invoice_${(job.property || 'Property').replace(/\s+/g, '_')}_${(job.date || '').replace(/\s+/g, '_')}.pdf`;
+    doc.save(fileName);
+}
+
 async function completeClean() {
     if (!selectedJob) return;
 
@@ -3635,7 +3887,8 @@ function handleBillingQueryParams() {
     }
 
     if (openBilling === '1') {
-        setTimeout(() => openBillingPortal(), 500);
+        const _u = JSON.parse(localStorage.getItem('cleaningUser') || '{}');
+        if (_u.role === 'Admin') setTimeout(() => openBillingPortal(), 500);
     }
 
     if (billing || openBilling) {

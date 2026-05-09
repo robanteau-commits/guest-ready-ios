@@ -87,6 +87,7 @@
             font-size: 14px;
             transition: 0.2s ease;
             display: inline-block;
+            white-space: nowrap;
         }
 
         .btn-login {
@@ -543,16 +544,22 @@
 
         @media (max-width: 640px) {
             .nav {
-                gap: 14px;
-            }
-
-            .nav-right {
                 gap: 8px;
             }
 
+            .logo {
+                font-size: 18px;
+                gap: 6px;
+            }
+
+            .nav-right {
+                gap: 6px;
+                flex-shrink: 0;
+            }
+
             .nav-btn {
-                padding: 9px 14px;
-                font-size: 13px;
+                padding: 8px 12px;
+                font-size: 12px;
             }
 
             .hero h1 {
