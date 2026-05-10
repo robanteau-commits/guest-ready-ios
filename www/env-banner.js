@@ -1,4 +1,17 @@
 (function () {
+  // Capacitor fetch patch — prepend production API base to relative URLs so
+  // the bundled (offline) app can still reach the server when online.
+  if (window.location.protocol === 'capacitor:' || window.location.protocol === 'ionic:') {
+    const API_BASE = 'https://www.guestreadyapp.com';
+    const _origFetch = window.fetch.bind(window);
+    window.fetch = function (url, options) {
+      if (typeof url === 'string' && url.startsWith('/')) {
+        url = API_BASE + url;
+      }
+      return _origFetch(url, options);
+    };
+  }
+
   const host = window.location.hostname;
 
   // Staging environment banner

@@ -30,6 +30,9 @@ const INCLUDE = [
   'mobile-nav.js',
   'env-banner.js',
   'pwa.js',
+  'app-shell.css',
+  'sw.js',
+  'manifest.json',
 ];
 
 // Folders to copy recursively

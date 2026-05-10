@@ -3,7 +3,6 @@
   "appName": "Guest Ready Pro",
   "webDir": "www",
   "server": {
-    "url": "https://www.guestreadyapp.com",
     "cleartext": false,
     "allowNavigation": ["*"]
   },
