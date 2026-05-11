@@ -3270,6 +3270,8 @@ const updates = {
         const cityEl = document.getElementById('editCity'); const stateEl = document.getElementById('editState');
         if (cityEl && stateEl && user.role === 'Cleaner') {
             const newCityVal = cityEl.value.trim(); const newStateVal = stateEl.value.trim();
+            if (!newCityVal) return showToast("Service city is required.", "error");
+            if (!newStateVal) return showToast("Service state is required.", "error");
             const fullLocationString = (newCityVal && newStateVal) ? `${newCityVal}, ${newStateVal}` : newCityVal;
             if (fullLocationString !== user.serviceCity) {
                 updates.serviceCity = fullLocationString;
