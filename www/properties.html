@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCebGDbbn61WDuQYpSsUxvmtbQcpUsD6x0&libraries=places"></script>    
 <link rel="stylesheet" href="/app-shell.css">
+<script src="/i18n.js"></script>
 <script src="/sidebar.js"></script>
 <script src="/mobile-nav.js"></script>
     <style>
@@ -113,9 +114,9 @@
 
         <div class="main-content">
             <div class="page-header">
-                <h1>My Properties</h1>
+                <h1 data-i18n="prop_title">My Properties</h1>
                 <div class="header-actions">
-                    <button class="primary-btn" onclick="openPropModal(null)">+ Add Property</button>
+                    <button class="primary-btn" onclick="openPropModal(null)" data-i18n="prop_add">+ Add Property</button>
                 </div>
             </div>
             <div id="propGrid" class="property-grid"></div>
@@ -133,13 +134,13 @@
         <div class="modal">
             <div class="modal-header">
                 <div class="modal-title-row">
-                    <h3 id="modalTitle" style="margin:0">Edit Property</h3>
+                    <h3 id="modalTitle" style="margin:0" data-i18n="prop_edit_title">Edit Property</h3>
                     <span onclick="closeModal()" style="cursor:pointer; font-size:24px; color:var(--text-muted);">&times;</span>
                 </div>
                 <div class="wizard-tabs">
-                    <div class="wizard-tab active" id="tab1" onclick="goToStep(1)">1. Basics</div>
-                    <div class="wizard-tab" id="tab2" onclick="goToStep(2)">2. Specs</div>
-                    <div class="wizard-tab" id="tab3" onclick="goToStep(3)">3. Access</div>
+                    <div class="wizard-tab active" id="tab1" onclick="goToStep(1)" data-i18n="prop_tab1">1. Basics</div>
+                    <div class="wizard-tab" id="tab2" onclick="goToStep(2)" data-i18n="prop_tab2">2. Specs</div>
+                    <div class="wizard-tab" id="tab3" onclick="goToStep(3)" data-i18n="prop_tab3">3. Access</div>
                     <div class="wizard-tab" id="tab4" onclick="goToStep(4)">4. Tasks</div>
                     <div class="wizard-tab" id="tab5" onclick="goToStep(5)">5. Photos & Pay</div>
                     <div class="wizard-tab" id="tab6" onclick="goToStep(6)">6. Calendar</div>
@@ -280,12 +281,12 @@
             </div>
 
             <div class="modal-footer">
-                <button id="btnDelete" class="delete-btn" style="display:none; margin-right:auto;" onclick="deleteProp()">Delete Property</button>
+                <button id="btnDelete" class="delete-btn" style="display:none; margin-right:auto;" onclick="deleteProp()" data-i18n="prop_delete">Delete Property</button>
                 <div style="display:flex; gap:10px; margin-left:auto;">
                     <button id="btnCancel" class="close-btn" onclick="closeModal()">Cancel</button>
                     <button id="btnBack" class="close-btn" style="display:none;" onclick="changeStep(-1)">Back</button>
                     <button id="btnNext" class="primary-btn" onclick="changeStep(1)">Next</button>
-                    <button id="btnSave" class="primary-btn" style="display:none;" onclick="saveProp()">Save Property</button>
+                    <button id="btnSave" class="primary-btn" style="display:none;" onclick="saveProp()" data-i18n="prop_save">Save Property</button>
                 </div>
             </div>
         </div>

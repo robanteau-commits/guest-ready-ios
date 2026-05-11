@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/app-shell.css">
+<script src="/i18n.js"></script>
 <script src="/sidebar.js"></script>
 <script src="/mobile-nav.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1417,8 +1418,6 @@ async function handleRegister() {
         btn.disabled = true;
         btn.innerText = "Processing...";
         const fullLocationString = (cityVal && stateVal) ? `${cityVal}, ${stateVal}` : cityVal;
-        // Store only the city name so it matches job city strings exactly; use full string for geocoding
-        const normalizedCity = cityVal.trim();
 
         let lat = 0; let lon = 0;
         if (document.getElementById('regRole').value === 'Cleaner') {
@@ -1444,7 +1443,7 @@ async function handleRegister() {
     accountType: (() => { const checked = document.querySelector('input[name="cleanerAccountType"]:checked'); return checked ? checked.value : 'individual'; })(),
     agreeTerms: document.getElementById('agreeTerms') ? document.getElementById('agreeTerms').checked : false,
     smsOptIn: document.getElementById('regSmsOptIn') ? document.getElementById('regSmsOptIn').checked : false,
-    serviceCity: normalizedCity,
+    serviceCity: fullLocationString,
     description: document.getElementById('regDesc').value,
     password: document.getElementById('regPass').value,
     location: { type: "Point", coordinates: [lon, lat] }, 
@@ -1935,8 +1934,6 @@ async function removeAdminTask(id, taskLabel) {
 
     async function adminSaveUser() {
         const cityVal = document.getElementById('adminUserCity').value.trim();
-        // Strip any accidental "City, State" format — store city name only
-        const normalizedCity = cityVal.includes(',') ? cityVal.split(',')[0].trim() : cityVal;
         const payload = {
             id: selectedUser.id,
             firstName: document.getElementById('adminUserFirst').value,
@@ -1944,7 +1941,7 @@ async function removeAdminTask(id, taskLabel) {
             email: document.getElementById('adminUserEmail').value,
             role: document.getElementById('adminUserRole').value,
             accountType: document.getElementById('adminUserAccountType').value,
-            serviceCity: normalizedCity
+            serviceCity: cityVal
         };
         const newPass = document.getElementById('adminUserPass').value;
         if (newPass) payload.password = newPass;
@@ -3268,10 +3265,8 @@ const updates = {
         if (cityEl && stateEl && user.role === 'Cleaner') {
             const newCityVal = cityEl.value.trim(); const newStateVal = stateEl.value.trim();
             const fullLocationString = (newCityVal && newStateVal) ? `${newCityVal}, ${newStateVal}` : newCityVal;
-            // Store only the city name so it matches job city strings exactly; use full string for geocoding
-            const normalizedCity = newCityVal.trim();
-            if (normalizedCity !== user.serviceCity) {
-                updates.serviceCity = normalizedCity;
+            if (fullLocationString !== user.serviceCity) {
+                updates.serviceCity = fullLocationString;
                 try {
                     const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullLocationString)}`);
                     const geoData = await geoRes.json();

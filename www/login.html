@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#2D8B73">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="/i18n.js"></script>
     <style>
         :root { --primary: #2D8B73; --bg: #F3F4F6; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -17,6 +18,7 @@
         input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
         button { width: 100%; padding: 12px; background-color: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .error { color: red; font-size: 14px; display: none; margin-top: 10px; }
+        .lang-toggle { background: none; border: 1px solid #e5e7eb; border-radius: 8px; padding: 7px 14px; font-size: 13px; color: #6b7280; cursor: pointer; margin-top: 14px; width: auto; }
 
         /* PASSWORD TOGGLE STYLES */
         .password-wrapper { position: relative; width: 100%; margin-bottom: 15px; }
@@ -28,20 +30,21 @@
 <body>
     <div class="login-card">
         <h1>Guest Ready</h1>
-        <p style="color:#666; margin-bottom:30px;">Cleaners and Hosts, in Sync.</p>
+        <p style="color:#666; margin-bottom:30px;" data-i18n="login_tagline">Cleaners and Hosts, in Sync.</p>
         <form id="loginForm" onsubmit="event.preventDefault(); login();" autocomplete="on">
-        <input type="email" id="email" name="email" autocomplete="username" placeholder="Email Address">
+        <input type="email" id="email" name="email" autocomplete="username" data-i18n-ph="login_email_ph" placeholder="Email Address">
 
         <div class="password-wrapper">
-            <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Password" style="padding-right: 45px;">
+            <input type="password" id="password" name="password" autocomplete="current-password" data-i18n-ph="login_password_ph" placeholder="Password" style="padding-right: 45px;">
 <span class="password-toggle" onclick="togglePassword('password', this)">
     <i class="fa-solid fa-eye-slash"></i>
 </span>        </div>
 
-        <button type="submit" id="loginBtn">Log In</button>
+        <button type="submit" id="loginBtn" data-i18n="login_btn">Log In</button>
         </form>
-        <div id="errorMsg" class="error">Invalid credentials</div>
-        <p style="margin-top:20px; font-size:12px;"><a href="index.html" style="color:#999; text-decoration:none;">← Back to Home</a></p>
+        <div id="errorMsg" class="error" data-i18n="login_invalid">Invalid credentials</div>
+        <p style="margin-top:20px; font-size:12px;"><a href="index.html" style="color:#999; text-decoration:none;" data-i18n="login_back">← Back to Home</a></p>
+        <button class="lang-toggle" onclick="grSwitchLang()" data-i18n="nav_lang_toggle">🌐 Español</button>
     </div>
     <script>
         function showRegisterView() {
@@ -68,13 +71,13 @@ async function login() {
     errorMsg.style.display = 'none';
 
     if (!email || !password) {
-        errorMsg.innerText = "Please fill in all fields";
+        errorMsg.innerText = t('login_fill_all');
         errorMsg.style.display = 'block';
         return;
     }
 
     btn.disabled = true;
-    btn.innerText = 'Logging in…';
+    btn.innerText = t('login_logging_in');
 
     try {
         const res = await fetch('/login', {
@@ -101,16 +104,16 @@ async function login() {
         } else {
             localStorage.removeItem('cleaningUser');
             localStorage.removeItem('guestReadyToken');
-            errorMsg.innerText = data.message || "Invalid login";
+            errorMsg.innerText = data.message || t('login_invalid');
             errorMsg.style.display = 'block';
             btn.disabled = false;
-            btn.innerText = 'Log In';
+            btn.innerText = t('login_btn');
         }
     } catch (err) {
-        errorMsg.innerText = "Server connection failed";
+        errorMsg.innerText = t('login_server_fail');
         errorMsg.style.display = 'block';
         btn.disabled = false;
-        btn.innerText = 'Log In';
+        btn.innerText = t('login_btn');
     }
 }
 

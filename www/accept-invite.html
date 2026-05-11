@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="/i18n.js"></script>
     <style>
         :root { --primary-teal: #2D8B73; --secondary-navy: #1F2937; --bg-light: #F9FAFB; --text-main: #374151; --text-muted: #6B7280; --white: #ffffff; --border-color: #E5E7EB; --font-heading: 'Merriweather', serif; --font-body: 'DM Sans', sans-serif; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -53,38 +54,38 @@
         <!-- Loading state while we validate the token -->
         <div id="loadingState" style="display:block; text-align:center; padding: 24px 0;">
             <div class="spinner"></div>
-            <p style="color: var(--text-muted); font-size: 14px;">Verifying your invite...</p>
+            <p style="color: var(--text-muted); font-size: 14px;" data-i18n="inv_verifying">Verifying your invite...</p>
         </div>
 
         <!-- Invalid / expired token -->
         <div id="errorState">
             <div class="state-icon">⚠️</div>
-            <p class="state-title">Link not found</p>
-            <p class="state-body">This invite link is invalid or has already been used. Ask your team manager to send a new invite.</p>
+            <p class="state-title" data-i18n="inv_not_found">Link not found</p>
+            <p class="state-body" data-i18n="inv_error_body">This invite link is invalid or has already been used. Ask your team manager to send a new invite.</p>
         </div>
 
         <!-- Set password form -->
         <div id="formState" style="display:none;">
-            <h1>Welcome to the team!</h1>
+            <h1 data-i18n="inv_welcome">Welcome to the team!</h1>
             <p class="subtitle" id="welcomeSubtitle">Set a password to finish creating your account and start receiving jobs.</p>
 
-            <label class="form-label">Password</label>
-            <input type="password" id="password" class="form-input" placeholder="Choose a password" autocomplete="new-password">
+            <label class="form-label" data-i18n="inv_password_label">Password</label>
+            <input type="password" id="password" class="form-input" data-i18n-ph="inv_password_ph" placeholder="Choose a password" autocomplete="new-password">
             <p class="hint">At least 8 characters.</p>
 
-            <label class="form-label">Confirm Password</label>
-            <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your password" autocomplete="new-password">
+            <label class="form-label" data-i18n="inv_confirm_label">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="form-input" data-i18n-ph="inv_confirm_ph" placeholder="Confirm your password" autocomplete="new-password">
 
             <p id="formError" class="error-msg"></p>
 
-            <button class="submit-btn" onclick="submitPassword()" id="submitBtn">Create Account</button>
+            <button class="submit-btn" onclick="submitPassword()" id="submitBtn" data-i18n="inv_create_account">Create Account</button>
         </div>
 
         <!-- Success state -->
         <div id="successState">
             <div class="state-icon">✅</div>
-            <p class="state-title">You're all set!</p>
-            <p class="state-body">Your account is ready. Taking you to your dashboard now...</p>
+            <p class="state-title" data-i18n="inv_success_title">You're all set!</p>
+            <p class="state-body" data-i18n="inv_success_body">Your account is ready. Taking you to your dashboard now...</p>
         </div>
     </div>
 
@@ -119,18 +120,18 @@
             errorEl.style.display = 'none';
 
             if (!password || password.length < 8) {
-                errorEl.innerText = 'Password must be at least 8 characters.';
+                errorEl.innerText = t('inv_pass_short');
                 errorEl.style.display = 'block';
                 return;
             }
             if (password !== confirm) {
-                errorEl.innerText = 'Passwords do not match.';
+                errorEl.innerText = t('inv_pass_mismatch');
                 errorEl.style.display = 'block';
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = 'Creating account...';
+            btn.innerText = t('inv_creating');
 
             try {
                 const res = await fetch('/company/accept-invite', {
@@ -147,20 +148,20 @@
                     showState('successState');
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
                 } else {
-                    errorEl.innerText = data.message || 'Something went wrong. Please try again.';
+                    errorEl.innerText = data.message || t('inv_error_create');
                     errorEl.style.display = 'block';
                     if (data.message && data.message.includes('invalid')) {
                         showState('errorState');
                     } else {
                         btn.disabled = false;
-                        btn.innerText = 'Create Account';
+                        btn.innerText = t('inv_create_account');
                     }
                 }
             } catch (e) {
-                errorEl.innerText = 'Network error. Please check your connection and try again.';
+                errorEl.innerText = t('inv_error_create');
                 errorEl.style.display = 'block';
                 btn.disabled = false;
-                btn.innerText = 'Create Account';
+                btn.innerText = t('inv_create_account');
             }
         }
 

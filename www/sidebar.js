@@ -17,37 +17,37 @@ function renderSidebar(options = {}) {
           </div>
           <span class="pro-badge">PRO</span>
         </div>
-        <div class="tagline">Cleaners and Hosts, In Sync</div>
+        <div class="tagline">${t('nav_tagline')}</div>
       </div>
 
       <div class="nav-links">
         <a href="dashboard.html" class="nav-item ${activePage === 'dashboard' ? 'active' : ''}">
-          <i class="fa-solid fa-chart-line"></i> Dashboard
+          <i class="fa-solid fa-chart-line"></i> ${t('nav_dashboard')}
         </a>
 
         <a href="messages.html" class="nav-item ${activePage === 'messages' ? 'active' : ''}" style="display:flex; justify-content:space-between; align-items:center;">
-          <span><i class="fa-solid fa-comment-dots"></i> Messages</span>
+          <span><i class="fa-solid fa-comment-dots"></i> ${t('nav_messages')}</span>
           <span id="msgNavBadge" class="sidebar-badge">0</span>
         </a>
 
         <a href="calendar.html" class="nav-item ${activePage === 'calendar' ? 'active' : ''}">
-          <i class="fa-solid fa-calendar-days"></i> Calendar
+          <i class="fa-solid fa-calendar-days"></i> ${t('nav_calendar')}
         </a>
 
         <a href="properties.html" class="nav-item ${activePage === 'properties' ? 'active' : ''}" id="navProps">
-          <i class="fa-solid fa-house"></i> Properties
+          <i class="fa-solid fa-house"></i> ${t('nav_properties')}
         </a>
 
         <a href="cleaners.html" class="nav-item ${activePage === 'cleaners' ? 'active' : ''}" id="navCleaners">
-          <i class="fa-solid fa-broom"></i> Cleaners
+          <i class="fa-solid fa-broom"></i> ${t('nav_cleaners')}
         </a>
 
         <a href="dispatch.html" class="nav-item ${activePage === 'dispatch' ? 'active' : ''}" id="navDispatch" style="display:none;">
-          <i class="fa-solid fa-users"></i> My Team
+          <i class="fa-solid fa-users"></i> ${t('nav_myteam')}
         </a>
 
         <a href="ai.html" class="nav-item ${activePage === 'ai' ? 'active' : ''}">
-          <i class="fa-solid fa-robot"></i> Ask Alf
+          <i class="fa-solid fa-robot"></i> ${t('nav_askalf')}
         </a>
       </div>
 
@@ -68,10 +68,14 @@ function renderSidebar(options = {}) {
                 href="#"
                 onclick="openSupportFeedbackDialog(event)"
                 style="font-size:12px;"
-              >Support/Feedback</a>
+              >${t('nav_support')}</a>
             </div>
           </div>
         </div>
+        <button
+          onclick="grSwitchLang()"
+          style="background:none; border:1px solid var(--border-color); border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer; color:var(--text-muted, #6b7280); text-align:left; width:100%;"
+        >${t('nav_lang_toggle')}</button>
         <div class="version-tag">${versionTag}</div>
       </div>
     </div>
@@ -189,14 +193,12 @@ function ensureSupportFeedbackModal() {
   overlay.innerHTML = `
     <div class="support-modal-card" role="dialog" aria-modal="true" aria-labelledby="supportFeedbackTitle">
       <div class="support-modal-content">
-        <h3 id="supportFeedbackTitle" class="support-modal-title">Support &amp; Feedback</h3>
-        <p class="support-modal-body">
-          Please email <a href="mailto:support@guestreadypro.com">support@guestreadypro.com</a> for support assistance or to share feedback.
-        </p>
+        <h3 id="supportFeedbackTitle" class="support-modal-title">${t('support_title')}</h3>
+        <p class="support-modal-body">${t('support_body')}</p>
       </div>
       <div class="support-modal-actions">
-        <button type="button" class="support-modal-btn secondary" onclick="closeSupportFeedbackDialog()">Close</button>
-        <a href="mailto:support@guestreadypro.com" class="support-modal-btn primary" style="text-decoration:none; display:inline-flex; align-items:center;">Email Support</a>
+        <button type="button" class="support-modal-btn secondary" onclick="closeSupportFeedbackDialog()">${t('support_close')}</button>
+        <a href="mailto:support@guestreadypro.com" class="support-modal-btn primary" style="text-decoration:none; display:inline-flex; align-items:center;">${t('support_email')}</a>
       </div>
     </div>
   `;

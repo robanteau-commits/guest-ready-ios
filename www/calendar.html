@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/app-shell.css">
+    <script src="/i18n.js"></script>
     <script src="/sidebar.js"></script>
     <script src="/mobile-nav.js"></script>
     <style>
@@ -128,7 +129,7 @@
                 <div class="month-title" id="monthDisplay">Loading...</div>
                 
                 <div style="display:flex; align-items:center; gap: 10px;">
-                    <button id="addManualJobBtn" class="save-btn" style="display:none;" onclick="openAddJobModal()">+ Add Job</button>
+                    <button id="addManualJobBtn" class="save-btn" style="display:none;" onclick="openAddJobModal()" data-i18n="cal_add_job">+ Add Job</button>
                     <button class="nav-btn" onclick="changeMonth(1)">❯</button>
                 </div>
             </div>
@@ -137,11 +138,11 @@
             
             <div id="dayDetailPanel" class="day-detail-panel">
                 <div class="detail-header">
-                    <span id="selectedDateTitle">Select a date</span>
+                    <span id="selectedDateTitle" data-i18n="cal_select_date">Select a date</span>
                     <button onclick="document.getElementById('dayDetailPanel').style.display='none'" style="border:none; background:none; font-size:20px; color:#999; display:none;" id="closePanelBtn">&times;</button>
                 </div>
                 <div id="selectedDateList">
-                    <div style="text-align:center; color:#999; padding:20px;">Tap a highlighted day to see details.</div>
+                    <div style="text-align:center; color:#999; padding:20px;" data-i18n="cal_tap_hint">Tap a highlighted day to see details.</div>
                 </div>
             </div>
         </div>
@@ -162,7 +163,7 @@
     <div id="addJobModal" class="modal-overlay">
         <div class="modal">
             <div class="modal-header">
-                <h3 style="margin:0;">Add Manual Job</h3>
+                <h3 style="margin:0;" data-i18n="cal_modal_title">Add Manual Job</h3>
                 <span onclick="closeModal('addJobModal')" style="cursor:pointer; font-size:24px;">&times;</span>
             </div>
             <div class="modal-body">
@@ -183,8 +184,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="close-btn" onclick="closeModal('addJobModal')">Cancel</button>
-                <button class="save-btn" onclick="saveNewManualJob()">Create Job</button>
+                <button class="close-btn" onclick="closeModal('addJobModal')" data-i18n="cal_cancel">Cancel</button>
+                <button class="save-btn" onclick="saveNewManualJob()" data-i18n="cal_create">Create Job</button>
             </div>
         </div>
     </div>

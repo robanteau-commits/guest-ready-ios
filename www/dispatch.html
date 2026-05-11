@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/app-shell.css">
+    <script src="/i18n.js"></script>
     <script src="/sidebar.js"></script>
     <script src="/mobile-nav.js"></script>
     <style>
@@ -105,19 +106,19 @@
 
         <div class="main-content">
             <div class="page-header">
-                <h1>Dispatch</h1>
+                <h1 data-i18n="dispatch_title">Dispatch</h1>
                 <button class="invite-btn-primary" onclick="openInviteModal()">
-                    <i class="fa-solid fa-user-plus"></i> Invite Cleaner
+                    <i class="fa-solid fa-user-plus"></i> <span data-i18n="dispatch_invite_btn">+ Invite Member</span>
                 </button>
             </div>
             <p class="page-subtitle" id="pageSubtitle">Assign your accepted jobs to team members.</p>
 
-            <p class="section-title">Jobs to assign</p>
+            <p class="section-title" data-i18n="dispatch_jobs_title">Jobs to assign</p>
             <div id="jobsList" class="jobs-list">
-                <div class="empty-jobs">Loading jobs...</div>
+                <div class="empty-jobs" data-i18n="dispatch_loading">Loading…</div>
             </div>
 
-            <p class="section-title">Your team</p>
+            <p class="section-title" data-i18n="dispatch_team_title">Your team</p>
             <div id="teamGrid" class="team-grid">
                 <div style="color: var(--text-muted); font-size: 14px;">Loading team...</div>
             </div>
@@ -130,27 +131,27 @@
     <div id="inviteModal" class="modal-overlay" onclick="if(event.target===this)closeInviteModal()">
         <div class="modal">
             <div class="modal-header">
-                <h3>Invite a team member</h3>
+                <h3 data-i18n="dispatch_invite_title">Invite a team member</h3>
             </div>
             <div class="modal-body">
                 <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 20px;">They'll get a text with a link to set up their account. Their login is free — covered under your plan.</p>
                 <div class="form-row">
                     <div style="flex:1;">
-                        <label class="form-label">First Name</label>
+                        <label class="form-label" data-i18n="dispatch_first_name">First Name</label>
                         <input type="text" id="inviteFirst" class="form-input" placeholder="Maria">
                     </div>
                     <div style="flex:1;">
-                        <label class="form-label">Last Name</label>
+                        <label class="form-label" data-i18n="dispatch_last_name">Last Name</label>
                         <input type="text" id="inviteLast" class="form-input" placeholder="Garcia">
                     </div>
                 </div>
-                <label class="form-label">Phone Number</label>
+                <label class="form-label" data-i18n="dispatch_phone">Phone Number</label>
                 <input type="tel" id="invitePhone" class="form-input" placeholder="704-555-1234">
                 <p id="inviteError" style="color:#EF4444; font-size:13px; margin:-8px 0 12px; display:none;"></p>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeInviteModal()">Cancel</button>
-                <button class="btn-primary" onclick="sendInvite()">Send Invite</button>
+                <button class="btn-secondary" onclick="closeInviteModal()" data-i18n="dispatch_cancel">Cancel</button>
+                <button class="btn-primary" onclick="sendInvite()" data-i18n="dispatch_send_invite">Send Invite</button>
             </div>
         </div>
     </div>

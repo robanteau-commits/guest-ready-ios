@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/app-shell.css">
+    <script src="/i18n.js"></script>
     <script src="/sidebar.js"></script>
     <script src="/mobile-nav.js"></script>
     <style>
@@ -61,7 +62,7 @@
 
         <div class="main-content">
             <div class="page-header">
-                <h1>Cleaners</h1>
+                <h1 data-i18n="cln_title">Cleaners</h1>
             </div>
             <div id="cleanerGrid" class="cleaner-grid"></div>
         </div>
@@ -243,7 +244,7 @@ async function fetchCleaners() {
             grid.innerHTML = '';
             
             if (cleaners.length === 0) {
-                grid.innerHTML = '<div class="empty-state">No cleaners on your team yet. Once you award a job to a cleaner, they will appear here!</div>';
+                grid.innerHTML = `<div class="empty-state">${t('cln_no_team')}</div>`;
                 return;
             }
 
@@ -260,7 +261,7 @@ async function fetchCleaners() {
                 if (currentUser.role === 'Host') {
                     const isTeam = currentUser.cleaningTeam && currentUser.cleaningTeam.includes(c.id);
                     const btnColor = isTeam ? '#EF4444' : '#10B981'; // Red for Remove, Green for Add
-                    const btnText = isTeam ? '❌ Remove from Team' : '⭐ Add to Team';
+                    const btnText = isTeam ? t('cln_remove') : t('cln_add');
                     const action = isTeam ? 'remove' : 'add';
                     teamBtnHtml = `<button class="invite-btn" style="background:${btnColor};" onclick="toggleTeam('${c.id}', '${action}')">${btnText}</button>`;
                 }
@@ -278,25 +279,25 @@ card.innerHTML = `
         </div>
     </div>
 
-    <div class="cleaner-bio">${c.description || 'No bio provided.'}</div>
+    <div class="cleaner-bio">${c.description || t('cln_no_bio')}</div>
 
     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:4px;">
         <div style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:10px; text-align:center;">
             <div style="font-size:18px; font-weight:800; color:#1F2937;">${completedCleans}</div>
-            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">Cleans</div>
+            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">${t('cln_cleans')}</div>
         </div>
         <div style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:10px; text-align:center;">
             <div style="font-size:18px; font-weight:800; color:#1F2937;">${cancelledCleans}</div>
-            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">Cancelled</div>
+            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">${t('cln_cancels')}</div>
         </div>
         <div style="background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:10px; text-align:center;">
             <div style="font-size:18px; font-weight:800; color:#1F2937;">${hostLikes}</div>
-            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">Likes</div>
+            <div style="font-size:11px; color:#6B7280; text-transform:uppercase; font-weight:700;">${t('cln_likes')}</div>
         </div>
     </div>
 
     <div class="cleaner-actions">
-        <button class="invite-btn" onclick="inviteCleaner('${c.id}', '${c.firstName}')">💬 Message ${c.firstName}</button>
+        <button class="invite-btn" onclick="inviteCleaner('${c.id}', '${c.firstName}')">${t('cln_message')} ${c.firstName}</button>
         ${teamBtnHtml}
     </div>
 `;
@@ -316,9 +317,9 @@ card.innerHTML = `
                         <span style="background:#FFFBEB; color:#92400E; border:1px solid #FDE68A; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;">👍 ${hostLikes} likes</span>
                     </div>
 
-                    <div class="cleaner-bio">${c.description || 'No bio provided.'}</div>
+                    <div class="cleaner-bio">${c.description || t('cln_no_bio')}</div>
                     <div class="cleaner-actions">
-                        <button class="invite-btn" onclick="inviteCleaner('${c.id}', '${c.firstName}')">💬 Message ${c.firstName}</button>
+                        <button class="invite-btn" onclick="inviteCleaner('${c.id}', '${c.firstName}')">${t('cln_message')} ${c.firstName}</button>
                         ${teamBtnHtml}
                     </div>
                 `;

@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/app-shell.css">
+    <script src="/i18n.js"></script>
     <script src="/sidebar.js"></script>
     <script src="/mobile-nav.js"></script>
     <style>
@@ -104,11 +105,11 @@
             <div class="inbox-list-pane">
                 <div class="inbox-header">
                     <div class="header-top">
-                        <div class="header-title">Messages</div>
+                        <div class="header-title" data-i18n="msg_title">Messages</div>
                     </div>
                     <div class="filter-row">
-                        <div class="filter-pill active">All</div>
-                        <div class="filter-pill inactive">Unread</div>
+                        <div class="filter-pill active" data-i18n="msg_filter_all">All</div>
+                        <div class="filter-pill inactive" data-i18n="msg_filter_unread">Unread</div>
                     </div>
                 </div>
                 <div id="threadList" class="thread-list">
@@ -130,11 +131,11 @@
                 <div id="chatFeed" class="chat-feed">
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:#ccc;">
                         <div style="font-size:40px; margin-bottom:10px;">💬</div>
-                        <div>Select a conversation</div>
+                        <div data-i18n="msg_select_convo">Select a conversation</div>
                     </div>
                 </div>
                 <div id="chatInputArea" class="chat-input-wrapper" style="visibility: hidden;">
-                    <textarea id="msgInput" class="chat-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMsg(); }"></textarea>
+                    <textarea id="msgInput" class="chat-input" data-i18n-ph="msg_type_ph" placeholder="Type a message…" onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendMsg(); }"></textarea>
                     <button class="send-btn" onclick="sendMsg()">➤</button>
                 </div>
             </div>

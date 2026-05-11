@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/app-shell.css">
+  <script src="/i18n.js"></script>
   <script src="/sidebar.js"></script>
   <script src="/mobile-nav.js"></script>
   <style>
@@ -317,12 +318,12 @@
       <div class="chat-page">
         <div class="chat-body">
           <div class="chat-main no-messages">
-            <div id="heroGreeting" style="font-size: 22px; font-weight: 500; color: var(--text); padding: 4px 0 6px 0; flex-shrink: 0;">Hi there</div>
+            <div id="heroGreeting" style="font-size: 22px; font-weight: 500; color: var(--text); padding: 4px 0 6px 0; flex-shrink: 0;" data-i18n="ai_greeting">Hi there</div>
             <div id="messages" class="messages-scroll"></div>
-            <div id="typingNote" class="typing-note" style="display:none;">Thinking...</div>
+            <div id="typingNote" class="typing-note" style="display:none;" data-i18n="ai_thinking">Thinking…</div>
             <div class="chat-composer">
               <div class="input-box">
-                <input id="input" type="text" placeholder="Ask anything..." />
+                <input id="input" type="text" data-i18n-ph="ai_input_ph" placeholder="Ask anything…" />
                 <button onclick="sendAI()">Send</button>
               </div>
             </div>
@@ -456,7 +457,7 @@
     const avatarWrap = document.getElementById('sidebarMyAvatar');
 
     if (userWelcome) userWelcome.textContent = firstName;
-    if (heroGreeting) heroGreeting.textContent = `Hi, ${firstName}`;
+    if (heroGreeting) heroGreeting.textContent = t('ai_greeting_name').replace('{name}', firstName);
 
     if (avatarWrap) {
       if (user.profilePhoto) {
@@ -635,7 +636,7 @@
 
       if (!user.firstName && welcomePanel) {
         const heroGreeting = document.getElementById('heroGreeting');
-        if (heroGreeting) heroGreeting.textContent = 'Hi there';
+        if (heroGreeting) heroGreeting.textContent = t('ai_greeting');
       }
     } catch (error) {
       console.error('AI briefing failed:', error);

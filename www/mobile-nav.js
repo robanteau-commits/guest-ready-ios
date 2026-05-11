@@ -6,7 +6,7 @@ function renderMobileNav(options = {}) {
   mount.innerHTML = `
     <div class="mobile-nav">
       <a href="dashboard.html" class="mobile-nav-item ${activePage === 'dashboard' ? 'active' : ''}">
-        <span><i class="fa-solid fa-chart-line"></i></span>Dashboard
+        <span><i class="fa-solid fa-chart-line"></i></span>${t('mnav_dashboard')}
       </a>
 
       <a href="messages.html" class="mobile-nav-item ${activePage === 'messages' ? 'active' : ''}">
@@ -14,27 +14,27 @@ function renderMobileNav(options = {}) {
           <i class="fa-solid fa-comment-dots"></i>
           <span id="mobMsgNavBadge" class="sidebar-badge" style="position:absolute; top:-5px; right:-10px;">0</span>
         </span>
-        Messages
+        ${t('mnav_messages')}
       </a>
 
       <a href="calendar.html" class="mobile-nav-item ${activePage === 'calendar' ? 'active' : ''}">
-        <span><i class="fa-solid fa-calendar-days"></i></span>Calendar
+        <span><i class="fa-solid fa-calendar-days"></i></span>${t('mnav_calendar')}
       </a>
 
       <a href="properties.html" class="mobile-nav-item ${activePage === 'properties' ? 'active' : ''}" id="mobNavProps">
-        <span><i class="fa-solid fa-house"></i></span>Props
+        <span><i class="fa-solid fa-house"></i></span>${t('mnav_properties')}
       </a>
 
       <a href="cleaners.html" class="mobile-nav-item ${activePage === 'cleaners' ? 'active' : ''}" id="mobNavCleaners">
-        <span><i class="fa-solid fa-broom"></i></span>Cleaners
+        <span><i class="fa-solid fa-broom"></i></span>${t('mnav_cleaners')}
       </a>
 
       <a href="dispatch.html" class="mobile-nav-item ${activePage === 'dispatch' ? 'active' : ''}" id="mobNavDispatch" style="display:none;">
-        <span><i class="fa-solid fa-users"></i></span>My Team
+        <span><i class="fa-solid fa-users"></i></span>${t('mnav_myteam')}
       </a>
 
       <a onclick="openProfileModal()" class="mobile-nav-item">
-        <span><i class="fa-solid fa-user"></i></span>Profile
+        <span><i class="fa-solid fa-user"></i></span>${t('mnav_profile')}
       </a>
     </div>
   `;
