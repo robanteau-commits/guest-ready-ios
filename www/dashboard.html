@@ -13,7 +13,6 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/app-shell.css">
 <script src="/i18n.js"></script>
-<script src="/persistent-auth.js"></script>
 <script src="/sidebar.js"></script>
 <script src="/mobile-nav.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -231,7 +230,7 @@ body {
             opacity: 0.92;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .billing-banner {
                 flex-direction: column;
                 align-items: flex-start;
@@ -477,7 +476,7 @@ body {
     <script>
         renderSidebar({
             activePage: 'dashboard',
-            versionTag: 'v2026-02-27.OnboardFix'
+            versionTag: 'v2026-05-11.iPadFix'
         });
         renderMobileNav({
             activePage: 'dashboard'
@@ -823,7 +822,7 @@ fetch('/env')
 <script>
 renderSidebar({
     activePage: 'dashboard',
-    versionTag: 'v2026-02-27.OnboardFix'
+    versionTag: 'v2026-05-11.iPadFix'
 });
 renderMobileNav({
     activePage: 'dashboard'
@@ -1104,7 +1103,6 @@ async function authenticatedFetch(url, options = {}) {
      let cleaners = []; let properties = []; let selectedJob = null; let selectedUser = null; let selectedProp = null; let globalTasks = [];
 
 window.addEventListener('DOMContentLoaded', async () => {
-    await restoreAuthIfNeeded();
     const authView = document.getElementById('authView');
     const appView = document.getElementById('appView');
     const urlParams = new URLSearchParams(window.location.search);
@@ -1369,11 +1367,9 @@ function formatPhone(input) {
 
             const data = await res.json();
 
-if (data.success) {
-    localStorage.setItem('cleaningUser', JSON.stringify(data.user));
-    localStorage.setItem('guestReadyToken', data.token);
-    persistAuthSave('cleaningUser', JSON.stringify(data.user));
-    persistAuthSave('guestReadyToken', data.token);
+if (data.success) { 
+    localStorage.setItem('cleaningUser', JSON.stringify(data.user)); 
+    localStorage.setItem('guestReadyToken', data.token); 
     window.location.href = 'dashboard.html';
     return;
 }
@@ -1381,8 +1377,6 @@ if (data.success) {
             if (data.billingRequired && data.token && data.user) {
                 localStorage.setItem('cleaningUser', JSON.stringify(data.user));
                 localStorage.setItem('guestReadyToken', data.token);
-                persistAuthSave('cleaningUser', JSON.stringify(data.user));
-                persistAuthSave('guestReadyToken', data.token);
                 document.getElementById('authError').style.display = 'none';
                 // For pending_checkout users, load dashboard for free exploration
                 // instead of immediately redirecting to billing
@@ -3900,9 +3894,8 @@ function handleBillingQueryParams() {
     }
 }
 function handleLogout() {
-        localStorage.removeItem('cleaningUser');
-        localStorage.removeItem('guestReadyToken');
-        persistAuthClear();
+        localStorage.removeItem('cleaningUser'); 
+        localStorage.removeItem('guestReadyToken'); 
         window.location.href = 'index.html'; 
     }
 </script>
