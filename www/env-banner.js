@@ -39,12 +39,12 @@
 
     const bar = document.createElement("div");
     bar.id = "adminProxyBanner";
-    bar.style.cssText = "position:fixed;bottom:0;left:0;width:100%;background:#7C3AED;color:white;font-weight:700;display:flex;align-items:center;justify-content:center;gap:16px;padding:10px 16px;z-index:9999;font-size:14px;box-shadow:0 -2px 8px rgba(0,0,0,0.2);";
+    bar.style.cssText = "position:fixed;top:0;left:0;width:100%;background:#7C3AED;color:white;font-weight:700;display:flex;align-items:center;justify-content:center;gap:16px;padding:10px 16px;z-index:9999;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.2);";
     bar.innerHTML = `
       <span>👤 Proxying as <strong>${proxied.firstName} ${proxied.lastName}</strong> (${proxied.role})</span>
       <button onclick="exitAdminProxy()" style="background:white;color:#7C3AED;border:none;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:13px;">Exit Proxy</button>
     `;
-    document.body.style.paddingBottom = (parseInt(document.body.style.paddingBottom) || 0) + 52 + "px";
+    document.body.style.paddingTop = (parseInt(document.body.style.paddingTop) || 0) + 52 + "px";
     document.body.appendChild(bar);
   } catch (e) {}
 })();
