@@ -326,9 +326,16 @@ card.innerHTML = `
                 `;
                 grid.appendChild(card);
             });
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            const grid = document.getElementById('cleanerGrid');
+            if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:40px;">
+                <p style="color:var(--text-muted);margin-bottom:16px;">⚠️ Could not connect to server.</p>
+                <button onclick="fetchCleaners()" style="background:var(--primary-teal);color:white;border:none;border-radius:8px;padding:10px 20px;font-weight:700;cursor:pointer;">Retry</button>
+            </div>`;
+        }
     }
-    
+
     function inviteCleaner(id, name) { window.location.href = `messages.html?partnerId=${id}&name=${encodeURIComponent(name)}`; }
 
     // --- TOGGLE CLEANER ON HOST TEAM ---
