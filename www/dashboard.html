@@ -1018,6 +1018,8 @@ async function authenticatedFetch(url, options = {}) {
 
     function renderBillingBanner() {
         const mount = document.getElementById('billingBannerMount');
+        if (mount) mount.innerHTML = '';
+        return;
         const user = getStoredUser();
 
         if (!mount || !user || user.role === 'Admin' || user.role === 'Host' || user.role === 'Cleaner' || user.billingStatus === 'comped' || user.billingStatus === 'active' || user.billingStatus === 'pending_checkout') {
