@@ -2467,7 +2467,12 @@ const checkoutDateText = (j.reservationDate && j.reservationDate !== j.date)
             }
 
             if (type === 'completed') {
-badge = `<span class="cleaner-tag" style="background:var(--secondary-navy);">✅ ${j.cleaner ? j.cleaner.firstName : 'Completed'}</span>`;            }
+                const alreadyLiked = j.hostFeedback && j.hostFeedback.liked;
+                const likeBtn = alreadyLiked
+                    ? `<span style="font-size:12px; color:#D97706; font-weight:700; margin-left:6px;">👍 Liked</span>`
+                    : `<button class="list-btn" style="background:#F59E0B; color:white; border:none; border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; cursor:pointer; margin-left:6px;" onclick="event.stopPropagation(); quickLikeCleaner('${j.propertyId}','${j.uid}','${j.source || ''}','${j.date}')">👍 Like</button>`;
+                badge = `<span class="cleaner-tag" style="background:var(--secondary-navy);">✅ ${j.cleaner ? j.cleaner.firstName : 'Completed'}</span>${likeBtn}`;
+            }
 
 const isSameDayTurnover = !!j.sameDayTurnover;
 li.innerHTML = `
@@ -2655,9 +2660,6 @@ async function openJobModal(job) {
             } else if (job.status === 'completed') {
                 if (document.getElementById('unassignBtn')) document.getElementById('unassignBtn').style.display = 'none';
                 if (document.getElementById('cancelJobBtn')) document.getElementById('cancelJobBtn').style.display = 'none';
-                if ((!job.hostFeedback || !job.hostFeedback.liked) && document.getElementById('likeCleanerBtn')) {
-                    document.getElementById('likeCleanerBtn').style.display = 'block';
-                }
                 if (job.pay && document.getElementById('downloadInvoiceBtn')) {
                     document.getElementById('downloadInvoiceBtn').style.display = 'block';
                 }
@@ -2675,6 +2677,11 @@ async function openJobModal(job) {
         } else {
             if (document.getElementById('postMarketBtn')) document.getElementById('postMarketBtn').style.display = 'block';
             if (document.getElementById('postTeamBtn')) document.getElementById('postTeamBtn').style.display = 'block';
+        }
+
+        if (job.status === 'completed' && (!job.hostFeedback || !job.hostFeedback.liked)) {
+            const likeBtn = document.getElementById('likeCleanerBtn');
+            if (likeBtn) likeBtn.style.display = 'block';
         }
 
         const reqList = document.getElementById('requestsList');
@@ -3842,6 +3849,25 @@ async function completeClean() {
         selectedJob.hostFeedback = data.assignment?.hostFeedback || selectedJob.hostFeedback || { liked: false };
         upsertCurrentJob(selectedJob);
         openJobModal(selectedJob);
+        if (typeof scheduleRefreshDashboardJobs === 'function') scheduleRefreshDashboardJobs(user);
+    }
+}
+
+async function quickLikeCleaner(propertyId, uid, source, date) {
+    const user = JSON.parse(localStorage.getItem('cleaningUser'));
+    const res = await authenticatedFetch('/assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ propertyId, uid, source: source || undefined, date, action: 'host_like_cleaner' })
+    });
+    const data = await res.json();
+    if (data.success) {
+        const job = currentJobs.find(j => j.uid === uid);
+        if (job) {
+            job.hostFeedback = data.assignment?.hostFeedback || { liked: true };
+            upsertCurrentJob(job);
+        }
+        showToast(data.alreadyLiked ? 'Already liked!' : 'Cleaner liked!');
         if (typeof scheduleRefreshDashboardJobs === 'function') scheduleRefreshDashboardJobs(user);
     }
 }
