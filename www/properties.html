@@ -506,9 +506,10 @@ let propertyLon = null;
 let googleAutocomplete = null;
     
     window.addEventListener('DOMContentLoaded', async () => {
+        await AuthStore.init();
         user = JSON.parse(localStorage.getItem('cleaningUser'));
         const token = localStorage.getItem('guestReadyToken');
-        
+
         // Require both user and token to view page
         if (!user || !token) { window.location.href = 'index.html'; return; }
         
@@ -1376,9 +1377,9 @@ async function openBillingPortal() {
     }
 }
 
-function handleLogout() { 
-    localStorage.removeItem('cleaningUser');
-    localStorage.removeItem('guestReadyToken'); // Clear the wristband on logout
+function handleLogout() {
+    AuthStore.removeAuth('cleaningUser');
+    AuthStore.removeAuth('guestReadyToken');
     window.location.href = 'index.html';
 }
 
@@ -1467,6 +1468,7 @@ function setTimeDisplay(fieldId, value) {
         </div>
     </div>
 </div>
+<script src="/auth-store.js"></script>
 <script src="/env-banner.js"></script>
     <script src="/pwa.js"></script>
 </body>

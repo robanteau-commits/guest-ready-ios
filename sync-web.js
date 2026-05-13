@@ -15,6 +15,7 @@ const DEST = path.resolve(__dirname, 'www');
 // Files and folders to copy from the staging web app
 const INCLUDE = [
   'i18n.js',
+  'auth-store.js',
   'dashboard.html',
   'calendar.html',
   'messages.html',

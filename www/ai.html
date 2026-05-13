@@ -780,8 +780,8 @@
   }
 
   function handleLogout() {
-    localStorage.removeItem('cleaningUser');
-    localStorage.removeItem('guestReadyToken');
+    AuthStore.removeAuth('cleaningUser');
+    AuthStore.removeAuth('guestReadyToken');
     window.location.href = 'index.html';
   }
 
@@ -791,7 +791,8 @@
     }
   });
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  await AuthStore.init();
   const user = localStorage.getItem('cleaningUser');
   const token = localStorage.getItem('guestReadyToken');
 
@@ -809,6 +810,7 @@ window.onclick = function(e) {
   if (e.target.className === 'modal-overlay') e.target.style.display = 'none';
 };
 </script>
+<script src="/auth-store.js"></script>
 <script src="/env-banner.js"></script>
   <script src="/pwa.js"></script>
 </body>

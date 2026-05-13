@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="/i18n.js"></script>
+    <script src="/auth-store.js"></script>
     <style>
         :root { --primary-teal: #2D8B73; --secondary-navy: #1F2937; --bg-light: #F9FAFB; --text-main: #374151; --text-muted: #6B7280; --white: #ffffff; --border-color: #E5E7EB; --font-heading: 'Merriweather', serif; --font-body: 'DM Sans', sans-serif; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -143,8 +144,8 @@
 
                 if (data.success) {
                     // Auto-log them in
-                    localStorage.setItem('guestReadyToken', data.token);
-                    localStorage.setItem('cleaningUser', JSON.stringify(data.user));
+                    AuthStore.setAuth('guestReadyToken', data.token);
+                    AuthStore.setAuth('cleaningUser', JSON.stringify(data.user));
                     showState('successState');
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
                 } else {

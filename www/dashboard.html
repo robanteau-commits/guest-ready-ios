@@ -676,6 +676,37 @@ fetch('/env')
     <div id="adminUserModal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>Edit User</h3></div><div class="modal-body"><input type="hidden" id="adminUserId"><label>First</label><input type="text" id="adminUserFirst" class="auth-input"><label>Last</label><input type="text" id="adminUserLast" class="auth-input"><label>Email</label><input type="text" id="adminUserEmail" class="auth-input"><label>Role</label><select id="adminUserRole" class="auth-input"><option value="Host">Host</option><option value="Cleaner">Cleaner</option><option value="Admin">Admin</option></select><label>Account Type <span style="font-size:11px; font-weight:400; color:#888;">(cleaners only)</span></label><select id="adminUserAccountType" class="auth-input"><option value="individual">Individual</option><option value="company">Cleaning Company</option></select><label>Service City <span style="font-size:11px; font-weight:400; color:#888;">(cleaners only — city name must match job city exactly)</span></label><input type="text" id="adminUserCity" class="auth-input" placeholder="e.g. Pineville"><label>Pass</label><input type="text" id="adminUserPass" class="auth-input" placeholder="Leave blank to keep"><div style="display:flex; justify-content:space-between; gap:10px; margin-top:20px; flex-wrap:wrap;"><button class="delete-btn" onclick="adminDeleteUser()">Delete</button><button class="close-btn" onclick="adminCompUser()">Comp User</button><button class="close-btn" onclick="adminUncompUser()">Uncomp User</button><button class="save-btn" style="background:#7C3AED;" onclick="adminImpersonate()">Proxy As</button><button class="save-btn" onclick="adminSaveUser()">Save</button></div></div><div class="modal-footer"><button class="close-btn" onclick="closeModal('adminUserModal')">Close</button></div></div></div>
     <div id="adminPropModal" class="modal-overlay"><div class="modal"><div class="modal-header"><h3>Edit Property</h3></div><div class="modal-body"><label>Name</label><input type="text" id="admPropName" class="auth-input"><div style="display:flex; justify-content:space-between; margin-top:20px;"><button class="delete-btn" onclick="adminDeleteProp()">Delete</button><button class="save-btn" onclick="adminSaveProp()">Save</button></div></div><div class="modal-footer"><button class="close-btn" onclick="closeModal('adminPropModal')">Close</button></div></div></div>
 
+<div id="changePasswordModal" class="modal-overlay" style="z-index: 3500;">
+    <div class="modal" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3 style="margin:0; font-family: var(--font-body);">Change Password</h3>
+            <span onclick="document.getElementById('changePasswordModal').style.display='none'" style="cursor:pointer; font-size:24px;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Current Password</label>
+            <div class="password-wrapper" style="margin-bottom:15px;">
+                <input type="password" id="cpCurrentPass" class="auth-input" placeholder="Current password" style="padding-right:45px; margin-bottom:0;">
+                <span class="password-toggle" onclick="togglePassword('cpCurrentPass', this)"><i class="fa-solid fa-eye-slash"></i></span>
+            </div>
+            <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">New Password</label>
+            <div class="password-wrapper" style="margin-bottom:15px;">
+                <input type="password" id="cpNewPass" class="auth-input" placeholder="New password (min 8 chars)" style="padding-right:45px; margin-bottom:0;">
+                <span class="password-toggle" onclick="togglePassword('cpNewPass', this)"><i class="fa-solid fa-eye-slash"></i></span>
+            </div>
+            <label style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Confirm New Password</label>
+            <div class="password-wrapper" style="margin-bottom:0;">
+                <input type="password" id="cpConfirmPass" class="auth-input" placeholder="Confirm new password" style="padding-right:45px; margin-bottom:0;">
+                <span class="password-toggle" onclick="togglePassword('cpConfirmPass', this)"><i class="fa-solid fa-eye-slash"></i></span>
+            </div>
+            <div id="cpError" style="color:#EF4444; font-size:13px; display:none; margin-top:12px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="close-btn" onclick="document.getElementById('changePasswordModal').style.display='none'">Cancel</button>
+            <button class="save-btn" id="cpSaveBtn" onclick="submitChangePassword()">Save Password</button>
+        </div>
+    </div>
+</div>
+
 <div id="profileModal" class="modal-overlay">
     <div class="modal">
         <div class="modal-header">
@@ -812,6 +843,7 @@ fetch('/env')
     <button class="delete-btn" onclick="handleLogout()" style="padding: 8px 16px;">Log Out</button>
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
 <button id="manageBillingBtn" class="close-btn" onclick="openBillingPortal()" style="display:none;">Manage Billing</button>
+        <button class="close-btn" onclick="openChangePasswordModal()">Change Password</button>
         <button class="close-btn" onclick="document.getElementById('profileModal').style.display='none'">Cancel</button>
 <button class="save-btn" onclick="saveProfile()">Save</button>
     </div>
@@ -819,6 +851,7 @@ fetch('/env')
     </div>
 </div>
 
+<script src="/auth-store.js"></script>
 <script>
 renderSidebar({
     activePage: 'dashboard',
@@ -1103,6 +1136,7 @@ async function authenticatedFetch(url, options = {}) {
      let cleaners = []; let properties = []; let selectedJob = null; let selectedUser = null; let selectedProp = null; let globalTasks = [];
 
 window.addEventListener('DOMContentLoaded', async () => {
+    await AuthStore.init();
     const authView = document.getElementById('authView');
     const appView = document.getElementById('appView');
     const urlParams = new URLSearchParams(window.location.search);
@@ -1151,7 +1185,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     const meData = await meRes.json();
                     if (meData.success && meData.user) {
                         user = meData.user;
-                        localStorage.setItem('cleaningUser', JSON.stringify(user));
+                        AuthStore.setAuth('cleaningUser', JSON.stringify(user));
                     }
                 }
             } catch (refreshErr) {
@@ -1166,8 +1200,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             return;
         } catch (e) {
             console.error("Login Parse Error", e);
-            localStorage.removeItem('cleaningUser');
-            localStorage.removeItem('guestReadyToken');
+            AuthStore.removeAuth('cleaningUser');
+            AuthStore.removeAuth('guestReadyToken');
         }
     }
 
@@ -1367,16 +1401,16 @@ function formatPhone(input) {
 
             const data = await res.json();
 
-if (data.success) { 
-    localStorage.setItem('cleaningUser', JSON.stringify(data.user)); 
-    localStorage.setItem('guestReadyToken', data.token); 
+if (data.success) {
+    AuthStore.setAuth('cleaningUser', JSON.stringify(data.user));
+    AuthStore.setAuth('guestReadyToken', data.token);
     window.location.href = 'dashboard.html';
     return;
 }
 
             if (data.billingRequired && data.token && data.user) {
-                localStorage.setItem('cleaningUser', JSON.stringify(data.user));
-                localStorage.setItem('guestReadyToken', data.token);
+                AuthStore.setAuth('cleaningUser', JSON.stringify(data.user));
+                AuthStore.setAuth('guestReadyToken', data.token);
                 document.getElementById('authError').style.display = 'none';
                 // For pending_checkout users, load dashboard for free exploration
                 // instead of immediately redirecting to billing
@@ -1390,8 +1424,8 @@ if (data.success) {
                 return;
             }
 
-            localStorage.removeItem('cleaningUser');
-            localStorage.removeItem('guestReadyToken');
+            AuthStore.removeAuth('cleaningUser');
+            AuthStore.removeAuth('guestReadyToken');
             document.getElementById('authError').innerText = data.message || 'Login failed';
             document.getElementById('authError').style.display = 'block';
         } catch(e) {
@@ -1466,8 +1500,8 @@ async function handleRegister() {
             const respData = await res.json();
 
             if (respData.success && respData.inviteApplied && respData.user && respData.token) {
-                localStorage.setItem('cleaningUser', JSON.stringify(respData.user));
-                localStorage.setItem('guestReadyToken', respData.token);
+                AuthStore.setAuth('cleaningUser', JSON.stringify(respData.user));
+                AuthStore.setAuth('guestReadyToken', respData.token);
                 showToast("Invite code applied. Welcome to Guest Ready!");
                 setTimeout(() => location.reload(), 400);
                 return;
@@ -1475,8 +1509,8 @@ async function handleRegister() {
 
             // Standard successful registration — land on dashboard for free exploration
             if (respData.success && respData.user && respData.token) {
-                localStorage.setItem('cleaningUser', JSON.stringify(respData.user));
-                localStorage.setItem('guestReadyToken', respData.token);
+                AuthStore.setAuth('cleaningUser', JSON.stringify(respData.user));
+                AuthStore.setAuth('guestReadyToken', respData.token);
                 showToast("Welcome to Guest Ready Pro! Explore the app, then start your free trial when ready.");
                 setTimeout(() => window.location.href = 'dashboard.html', 1200);
                 return;
@@ -1969,8 +2003,8 @@ async function removeAdminTask(id, taskLabel) {
         localStorage.setItem('adminToken', localStorage.getItem('guestReadyToken'));
 
         // Switch to target user session
-        localStorage.setItem('cleaningUser', JSON.stringify(data.user));
-        localStorage.setItem('guestReadyToken', data.token);
+        AuthStore.setAuth('cleaningUser', JSON.stringify(data.user));
+        AuthStore.setAuth('guestReadyToken', data.token);
 
         window.location.href = 'dashboard.html';
     }
@@ -3894,10 +3928,65 @@ function handleBillingQueryParams() {
     }
 }
 function handleLogout() {
-        localStorage.removeItem('cleaningUser'); 
-        localStorage.removeItem('guestReadyToken'); 
-        window.location.href = 'index.html'; 
+        AuthStore.removeAuth('cleaningUser');
+        AuthStore.removeAuth('guestReadyToken');
+        window.location.href = 'index.html';
     }
+
+function openChangePasswordModal() {
+    document.getElementById('profileModal').style.display = 'none';
+    document.getElementById('cpCurrentPass').value = '';
+    document.getElementById('cpNewPass').value = '';
+    document.getElementById('cpConfirmPass').value = '';
+    document.getElementById('cpError').style.display = 'none';
+    const btn = document.getElementById('cpSaveBtn');
+    btn.disabled = false;
+    btn.innerText = 'Save Password';
+    document.getElementById('changePasswordModal').style.display = 'flex';
+}
+
+async function submitChangePassword() {
+    const currentPassword = document.getElementById('cpCurrentPass').value;
+    const newPassword = document.getElementById('cpNewPass').value;
+    const confirm = document.getElementById('cpConfirmPass').value;
+    const errEl = document.getElementById('cpError');
+    const btn = document.getElementById('cpSaveBtn');
+
+    errEl.style.display = 'none';
+
+    if (!currentPassword) { errEl.innerText = 'Enter your current password.'; errEl.style.display = 'block'; return; }
+    if (!newPassword || newPassword.length < 8) { errEl.innerText = 'New password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+    if (newPassword !== confirm) { errEl.innerText = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.innerText = 'Saving…';
+
+    try {
+        const res = await authenticatedFetch('/user/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('changePasswordModal').style.display = 'none';
+            showToast('Password changed successfully.');
+        } else {
+            errEl.innerText = data.message || 'Something went wrong.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = 'Save Password';
+        }
+    } catch (e) {
+        if (e.message !== 'Unauthorized' && e.message !== 'Billing required') {
+            errEl.innerText = 'Server error. Please try again.';
+            errEl.style.display = 'block';
+        }
+        btn.disabled = false;
+        btn.innerText = 'Save Password';
+    }
+}
 </script>
 <div id="aiBox" style="display:none;"></div>
 <script src="/env-banner.js"></script>

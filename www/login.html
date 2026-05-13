@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="/i18n.js"></script>
+    <script src="/auth-store.js"></script>
     <style>
         :root { --primary: #2D8B73; --bg: #F3F4F6; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -43,7 +44,8 @@
         <button type="submit" id="loginBtn" data-i18n="login_btn">Log In</button>
         </form>
         <div id="errorMsg" class="error" data-i18n="login_invalid">Invalid credentials</div>
-        <p style="margin-top:20px; font-size:12px;"><a href="index.html" style="color:#999; text-decoration:none;" data-i18n="login_back">← Back to Home</a></p>
+        <p style="margin-top:14px; font-size:13px;"><a href="#" onclick="showForgotView(); return false;" style="color:var(--primary); text-decoration:none; font-weight:600;">Forgot password?</a></p>
+        <p style="margin-top:8px; font-size:12px;"><a href="index.html" style="color:#999; text-decoration:none;" data-i18n="login_back">← Back to Home</a></p>
         <button class="lang-toggle" onclick="grSwitchLang()" data-i18n="nav_lang_toggle">🌐 Español</button>
     </div>
     <script>
@@ -89,12 +91,12 @@ async function login() {
         const data = await res.json();
 
         if (data.success) {
-            localStorage.setItem('cleaningUser', JSON.stringify(data.user));
-            localStorage.setItem('guestReadyToken', data.token);
+            AuthStore.setAuth('cleaningUser', JSON.stringify(data.user));
+            AuthStore.setAuth('guestReadyToken', data.token);
             window.location.href = 'dashboard.html';
         } else if (data.billingRequired && data.token && data.user) {
-            localStorage.setItem('cleaningUser', JSON.stringify(data.user));
-            localStorage.setItem('guestReadyToken', data.token);
+            AuthStore.setAuth('cleaningUser', JSON.stringify(data.user));
+            AuthStore.setAuth('guestReadyToken', data.token);
             // pending_checkout users explore freely — don't force Stripe on login
             if (data.user.billingStatus === 'pending_checkout') {
                 window.location.href = 'dashboard.html';
@@ -102,8 +104,8 @@ async function login() {
                 window.location.href = 'dashboard.html?openBilling=1';
             }
         } else {
-            localStorage.removeItem('cleaningUser');
-            localStorage.removeItem('guestReadyToken');
+            AuthStore.removeAuth('cleaningUser');
+            AuthStore.removeAuth('guestReadyToken');
             errorMsg.innerText = data.message || t('login_invalid');
             errorMsg.style.display = 'block';
             btn.disabled = false;
@@ -134,6 +136,121 @@ function togglePassword(inputId, iconEl) {
         if (params.get('view') === 'register') {
             showRegisterView();
         }
+
+// ---- FORGOT PASSWORD FLOW ----
+let _resetEmail = '';
+
+function showForgotView() {
+    document.querySelector('.login-card').innerHTML = `
+        <h1>Guest Ready</h1>
+        <p style="color:#666; margin-bottom:20px;">Reset your password</p>
+        <p style="font-size:13px; color:#6B7280; margin-bottom:20px;">Enter your email and we'll send a 6-digit code to your phone.</p>
+        <input type="email" id="forgotEmail" placeholder="Email Address" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; font-size:16px; outline:none;">
+        <button id="sendCodeBtn" onclick="sendResetCode()" style="width:100%; padding:12px; background:#2D8B73; color:white; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer;">Send Reset Code</button>
+        <div id="forgotError" style="color:red; font-size:14px; display:none; margin-top:10px;"></div>
+        <p style="margin-top:16px; font-size:12px;"><a href="login.html" style="color:#999; text-decoration:none;">← Back to Login</a></p>
+    `;
+}
+
+async function sendResetCode() {
+    const email = (document.getElementById('forgotEmail').value || '').trim();
+    const errEl = document.getElementById('forgotError');
+    const btn = document.getElementById('sendCodeBtn');
+
+    errEl.style.display = 'none';
+    if (!email) { errEl.innerText = 'Please enter your email.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.innerText = 'Sending…';
+
+    try {
+        const res = await fetch('/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            _resetEmail = email;
+            showCodeView(data.masked || '');
+        } else {
+            errEl.innerText = data.message || 'Something went wrong.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = 'Send Reset Code';
+        }
+    } catch (e) {
+        errEl.innerText = 'Server error. Please try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerText = 'Send Reset Code';
+    }
+}
+
+function showCodeView(masked) {
+    document.querySelector('.login-card').innerHTML = `
+        <h1>Guest Ready</h1>
+        <p style="color:#666; margin-bottom:6px;">Check your phone</p>
+        <p style="font-size:13px; color:#6B7280; margin-bottom:20px;">A 6-digit code was sent to <strong>${masked || 'your phone'}</strong>. Enter it below with your new password.</p>
+        <input type="text" id="resetCodeInput" inputmode="numeric" maxlength="6" placeholder="6-digit code" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; font-size:16px; outline:none; letter-spacing:4px; text-align:center;">
+        <div style="position:relative; width:100%; margin-bottom:15px;">
+            <input type="password" id="newPassInput" placeholder="New password (min 8 chars)" style="width:100%; padding:12px; padding-right:45px; border:1px solid #ddd; border-radius:8px; font-size:16px; outline:none; box-sizing:border-box;">
+            <span onclick="togglePassword('newPassInput', this)" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:16px; color:#9CA3AF; display:flex; align-items:center;"><i class="fa-solid fa-eye-slash"></i></span>
+        </div>
+        <div style="position:relative; width:100%; margin-bottom:15px;">
+            <input type="password" id="newPassConfirm" placeholder="Confirm new password" style="width:100%; padding:12px; padding-right:45px; border:1px solid #ddd; border-radius:8px; font-size:16px; outline:none; box-sizing:border-box;">
+            <span onclick="togglePassword('newPassConfirm', this)" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:16px; color:#9CA3AF; display:flex; align-items:center;"><i class="fa-solid fa-eye-slash"></i></span>
+        </div>
+        <button id="resetBtn" onclick="submitPasswordReset()" style="width:100%; padding:12px; background:#2D8B73; color:white; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer;">Set New Password</button>
+        <div id="resetError" style="color:red; font-size:14px; display:none; margin-top:10px;"></div>
+        <p style="margin-top:16px; font-size:12px;"><a href="#" onclick="showForgotView(); return false;" style="color:#999; text-decoration:none;">← Try a different email</a></p>
+    `;
+}
+
+async function submitPasswordReset() {
+    const code = (document.getElementById('resetCodeInput').value || '').trim();
+    const newPass = document.getElementById('newPassInput').value;
+    const confirm = document.getElementById('newPassConfirm').value;
+    const errEl = document.getElementById('resetError');
+    const btn = document.getElementById('resetBtn');
+
+    errEl.style.display = 'none';
+
+    if (!code || code.length < 6) { errEl.innerText = 'Enter the 6-digit code.'; errEl.style.display = 'block'; return; }
+    if (!newPass || newPass.length < 8) { errEl.innerText = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+    if (newPass !== confirm) { errEl.innerText = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.innerText = 'Saving…';
+
+    try {
+        const res = await fetch('/auth/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: _resetEmail, code, newPassword: newPass })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.querySelector('.login-card').innerHTML = `
+                <h1 style="color:#2D8B73;">Password Updated!</h1>
+                <p style="color:#666; margin-bottom:24px;">Your password has been reset. You can now log in with your new password.</p>
+                <a href="login.html" style="display:block; width:100%; padding:12px; background:#2D8B73; color:white; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; text-decoration:none; text-align:center; box-sizing:border-box;">Log In</a>
+            `;
+        } else {
+            errEl.innerText = data.message || 'Something went wrong.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = 'Set New Password';
+        }
+    } catch (e) {
+        errEl.innerText = 'Server error. Please try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerText = 'Set New Password';
+    }
+}
     </script>
     <script src="/env-banner.js"></script>
     <script src="/pwa.js"></script>

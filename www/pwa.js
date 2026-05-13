@@ -1,21 +1,63 @@
 (function () {
-  if (!('serviceWorker' in navigator)) return;
+  function _isNative() {
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  }
+  function _getCapacitorPush() {
+    return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.PushNotifications;
+  }
 
-  window.addEventListener('load', async () => {
-    try {
-      const reg = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service worker registered');
-
-      // Re-register push subscription silently if permission already granted
-      if ('PushManager' in window && Notification.permission === 'granted') {
-        const token = localStorage.getItem('guestReadyToken');
-        if (token) {
-          _setupPushSubscription(reg, token).catch(() => {});
+  // Service worker for browser/PWA only (WKWebView doesn't support it)
+  if (!_isNative() && 'serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        console.log('Service worker registered');
+        if ('PushManager' in window && Notification.permission === 'granted') {
+          const token = localStorage.getItem('guestReadyToken');
+          if (token) _setupPushSubscription(reg, token).catch(() => {});
         }
+      } catch (err) {
+        console.error('Service worker registration failed:', err);
       }
-    } catch (err) {
-      console.error('Service worker registration failed:', err);
-    }
+    });
+  }
+
+  // APNs setup for native iOS — register listeners and silently re-register if already permitted
+  window.addEventListener('load', () => {
+    if (!_isNative()) return;
+    const Push = _getCapacitorPush();
+    if (!Push) return;
+
+    Push.addListener('registration', async (data) => {
+      const token = localStorage.getItem('guestReadyToken');
+      if (!token || !data.value) return;
+      try {
+        await fetch('/push/apns-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ token: data.value })
+        });
+      } catch (e) {}
+    });
+
+    Push.addListener('registrationError', (err) => {
+      console.error('APNs registration error:', err);
+    });
+
+    Push.addListener('pushNotificationReceived', (notification) => {
+      console.log('Push notification received (foreground):', notification);
+    });
+
+    Push.addListener('pushNotificationActionPerformed', (action) => {
+      if (action.notification && action.notification.data && action.notification.data.url) {
+        window.location.href = action.notification.data.url;
+      }
+    });
+
+    // Silently refresh token on every launch if permission was already granted
+    Push.checkPermissions().then(result => {
+      if (result.receive === 'granted') Push.register();
+    }).catch(() => {});
   });
 })();
 
@@ -27,9 +69,15 @@ async function _setupPushSubscription(registration, token) {
   await _subscribeAndSend(registration, publicKey, token);
 }
 
-// Called when user enables push in profile settings
+// Called when the user enables push in their profile settings
 async function requestAndSubscribePush() {
   try {
+    // Native iOS path via Capacitor
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+      return await _requestCapacitorPush();
+    }
+
+    // Browser/PWA path
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       if (typeof showToast === 'function') showToast('Push notifications are not supported on this device.', 'error');
       return false;
@@ -55,6 +103,22 @@ async function requestAndSubscribePush() {
     console.error('requestAndSubscribePush failed:', e);
     return false;
   }
+}
+
+async function _requestCapacitorPush() {
+  const Push = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.PushNotifications;
+  if (!Push) {
+    if (typeof showToast === 'function') showToast('Push notifications are not available.', 'error');
+    return false;
+  }
+  const result = await Push.requestPermissions();
+  if (result.receive !== 'granted') {
+    if (typeof showToast === 'function') showToast('Notification permission denied. Please enable it in Settings → Guest Ready.', 'error');
+    return false;
+  }
+  // Calling register() fires the 'registration' event, which sends the APNs token to our server
+  await Push.register();
+  return true;
 }
 
 async function _subscribeAndSend(registration, publicKey, token) {
