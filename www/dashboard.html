@@ -1135,6 +1135,20 @@ async function authenticatedFetch(url, options = {}) {
 
      let cleaners = []; let properties = []; let selectedJob = null; let selectedUser = null; let selectedProp = null; let globalTasks = [];
 
+    const DASHBOARD_CACHE_TTL = 3 * 60 * 1000;
+    function saveDashboardCache(userId, data) {
+        try { localStorage.setItem(`dashCache_${userId}`, JSON.stringify({ ...data, ts: Date.now() })); } catch (e) {}
+    }
+    function loadDashboardCache(userId) {
+        try {
+            const raw = localStorage.getItem(`dashCache_${userId}`);
+            if (!raw) return null;
+            const cache = JSON.parse(raw);
+            if (Date.now() - cache.ts > DASHBOARD_CACHE_TTL) return null;
+            return cache;
+        } catch (e) { return null; }
+    }
+
 window.addEventListener('DOMContentLoaded', async () => {
     await AuthStore.init();
     const authView = document.getElementById('authView');
@@ -1658,6 +1672,7 @@ async function refreshDashboardJobs(user) {
             const myRes = await authenticatedFetch(jobUrl);
             currentJobs = myRes.ok ? deduplicateJobs(await myRes.json()) : [];
             loadTeamMemberData(user);
+            saveDashboardCache(user.id, { jobs: currentJobs });
         } else if (user.role === 'Cleaner') {
             let marketJobs = [];
             try {
@@ -1679,11 +1694,13 @@ async function refreshDashboardJobs(user) {
             ]);
             renderOnboarding(user, currentJobs);
             loadCleanerData(user);
+            saveDashboardCache(user.id, { jobs: currentJobs, cleaners });
         } else if (user.role === 'Host') {
             const res = await authenticatedFetch(jobUrl);
             const rawJobs = await res.json();
             currentJobs = deduplicateJobs(rawJobs);
             loadHostData(user);
+            saveDashboardCache(user.id, { jobs: currentJobs, cleaners, properties });
         } else if (user.role === 'Admin') {
             await loadAdminData();
         }
@@ -1695,6 +1712,37 @@ async function refreshDashboardJobs(user) {
 }
 async function initializeDashboard(user) {
     try {
+        // Render from cache immediately if data is fresh, then background-refresh
+        const cache = loadDashboardCache(user.id);
+        if (cache && user.role !== 'Admin') {
+            currentJobs = cache.jobs || [];
+            cleaners = cache.cleaners || [];
+            properties = cache.properties || [];
+            updateMessageBadge(user);
+            document.getElementById('dashboardLoader').style.display = 'none';
+            if (user.role === 'TeamMember') {
+                loadTeamMemberData(user);
+                document.getElementById('cleanerDashboard').style.display = 'block';
+                document.getElementById('cleanerCity').style.display = 'none';
+                const dashHeader = document.querySelector('#cleanerDashboard .page-header h1');
+                if (dashHeader) dashHeader.textContent = 'My Jobs';
+                const pendingCard = document.getElementById('listPendingAndNew') && document.getElementById('listPendingAndNew').closest('.card');
+                if (pendingCard) pendingCard.style.display = 'none';
+                document.getElementById('cleanerDashboardGrid').style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+            } else if (user.role === 'Cleaner') {
+                renderOnboarding(user, currentJobs);
+                loadCleanerData(user);
+                document.getElementById('cleanerDashboard').style.display = 'block';
+                document.getElementById('cleanerCity').innerText = user.serviceCity || 'Your Area';
+            } else if (user.role === 'Host') {
+                loadHostData(user);
+                document.getElementById('hostDashboard').style.display = 'block';
+                renderOnboarding(user, currentJobs, properties);
+            }
+            setTimeout(() => refreshDashboardJobs(user), 3000);
+            return;
+        }
+
         document.getElementById('dashboardLoader').style.display = 'flex';
         document.getElementById('hostDashboard').style.display = 'none';
         document.getElementById('cleanerDashboard').style.display = 'none';
@@ -1721,6 +1769,7 @@ async function initializeDashboard(user) {
             const pendingCard = document.getElementById('listPendingAndNew') && document.getElementById('listPendingAndNew').closest('.card');
             if (pendingCard) pendingCard.style.display = 'none';
             document.getElementById('cleanerDashboardGrid').style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+            saveDashboardCache(user.id, { jobs: currentJobs });
 
         } else if (user.role === 'Cleaner') {
             const cleanersPromise = authenticatedFetch('/cleaners');
@@ -1752,6 +1801,7 @@ async function initializeDashboard(user) {
             } catch (bgErr) {
                 console.error('Background cleaner load error', bgErr);
             }
+            saveDashboardCache(user.id, { jobs: currentJobs, cleaners });
         } else if (user.role === 'Host') {
             const jobsPromise = authenticatedFetch(jobUrl);
             const cleanersPromise = authenticatedFetch('/cleaners');
@@ -1773,10 +1823,11 @@ async function initializeDashboard(user) {
             } catch (bgErr) {
                 console.error('Background host data load error', bgErr);
             }
+            saveDashboardCache(user.id, { jobs: currentJobs, cleaners, properties });
         } else {
             await loadAdminData();
             document.getElementById('dashboardLoader').style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'block'; 
+            document.getElementById('adminDashboard').style.display = 'block';
         }
     } catch(e) {
         console.error("Load Error", e);
