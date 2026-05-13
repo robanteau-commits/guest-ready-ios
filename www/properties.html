@@ -1140,14 +1140,9 @@ function removePreferredCleaner(index) {
         let lon = propertyLon;
         let lat = propertyLat;
 
-        if (lat == null || lon == null || isNaN(lat) || isNaN(lon)) {
-            showToast("Please select the property address from the Google dropdown so we can verify the location.", "error");
-            return;
-        }
-
         const data = {
             id: document.getElementById('pId').value || undefined,
-            ownerId: ownerToSave, 
+            ownerId: ownerToSave,
             name, street, city, state, zip, bedrooms, bathrooms, sqft,
             checkIn: document.getElementById('pCheckIn').value,
             checkOut: document.getElementById('pCheckOut').value,
@@ -1160,7 +1155,7 @@ function removePreferredCleaner(index) {
             pay: document.getElementById('pPay').value,
             tasks: finalTasks,
             stagingPhotos: currentPhotos,
-            location: { type: "Point", coordinates: [lon, lat] }, // Saving the coordinates!
+            location: (lon != null && lat != null) ? { type: "Point", coordinates: [lon, lat] } : undefined,
             preferredCleaners: preferredCleaners
         };
 
