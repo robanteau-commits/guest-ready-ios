@@ -476,16 +476,16 @@ if (user.role === 'Cleaner') {
         if (navDispatch) navDispatch.style.display = '';
         if (mobNavDispatch) mobNavDispatch.style.display = '';
     }
-} else { 
-                await fetchCleaners();
-                await fetchProperties(user);
+} else {
+                try { await fetchCleaners(); } catch(e) {}
+                try { await fetchProperties(user); } catch(e) {}
                 if (user.role === 'Host' || user.role === 'Admin') {
                     document.getElementById('addManualJobBtn').style.display = 'block';
                 }
             }
 
-            await updateMessageBadge(user);
-            await loadChecklistTemplates();
+            try { await updateMessageBadge(user); } catch(e) {}
+            try { await loadChecklistTemplates(); } catch(e) {}
             await fetchJobs(user);
         });
 

@@ -1189,24 +1189,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // Refresh user from server in background
-            try {
-                const meRes = await fetch('/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
+            // Fire-and-forget user refresh — do NOT await so the dashboard loads immediately
+            fetch('/me', { headers: { 'Authorization': `Bearer ${token}` } })
+                .then(async meRes => {
+                    if (meRes.ok) {
+                        const meData = await meRes.json();
+                        if (meData.success && meData.user) {
+                            AuthStore.setAuth('cleaningUser', JSON.stringify(meData.user));
+                        }
                     }
-                });
-
-                if (meRes.ok) {
-                    const meData = await meRes.json();
-                    if (meData.success && meData.user) {
-                        user = meData.user;
-                        AuthStore.setAuth('cleaningUser', JSON.stringify(user));
-                    }
-                }
-            } catch (refreshErr) {
-                console.warn('Failed to refresh current user from server', refreshErr);
-            }
+                })
+                .catch(err => console.warn('Failed to refresh current user from server', err));
 
             renderBillingBanner();
             handleBillingQueryParams();
