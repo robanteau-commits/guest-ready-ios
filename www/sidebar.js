@@ -46,9 +46,7 @@ function renderSidebar(options = {}) {
           <i class="fa-solid fa-users"></i> ${t('nav_myteam')}
         </a>
 
-        <a href="ai.html" class="nav-item ${activePage === 'ai' ? 'active' : ''}">
-          <i class="fa-solid fa-robot"></i> ${t('nav_askalf')}
-        </a>
+
       </div>
 
       <div style="padding: 16px 10px 0; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; margin-top:auto;">
